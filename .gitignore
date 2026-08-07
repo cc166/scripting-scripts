@@ -1,0 +1,13 @@
+# Local and generated files.
+*.tmp
+*.tmp.*
+*.bak
+*~
+.DS_Store
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*
+*.log
