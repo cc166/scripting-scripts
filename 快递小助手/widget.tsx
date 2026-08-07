@@ -225,7 +225,7 @@ else {
         <Button key={item.code} buttonStyle="plain" intent={TogglePickedIntent(item.code)}>
           <HStack spacing={12} alignment="top">
             <Image
-              systemName={getIcon(item.code)}
+              systemName={getIcon(item)}
               font={22}
               foregroundStyle={getColor(item)}
             />
