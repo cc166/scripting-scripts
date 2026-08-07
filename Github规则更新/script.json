@@ -1,0 +1,45 @@
+{
+  "localizedDescriptions" : {
+    "fr" : "",
+    "ja" : "",
+    "ru" : "",
+    "de" : "",
+    "en" : "",
+    "es" : "",
+    "pt" : "",
+    "zh" : "",
+    "it" : ""
+  },
+  "entry" : "index.tsx",
+  "author" : {
+    "email" : null,
+    "name" : "Lucasss1916",
+    "homepage" : null
+  },
+  "version" : "1.0.1",
+  "remoteResource" : null,
+  "description" : "直接在已有规则文件基础上，添加新规则",
+  "iconImage" : "",
+  "contributors" : [
+
+  ],
+  "intentInputTypes" : [
+
+  ],
+  "name" : "Github规则更新",
+  "localizedNames" : {
+    "fr" : "",
+    "zh" : "",
+    "es" : "",
+    "de" : "",
+    "en" : "",
+    "ja" : "",
+    "it" : "",
+    "ru" : "",
+    "pt" : ""
+  },
+  "icon" : "network",
+  "color" : "rgba(0, 0, 0, 1.00)",
+  "permissions" : null,
+  "runInApp" : false
+}
