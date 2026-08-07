@@ -6,7 +6,7 @@ import { extractPickupFromText, type PickupInfo } from "./pickup_parser"
 
 declare const Storage: { 
   get<T>(key: string): T | undefined; 
-  set(key: string, value: any): void; 
+  set(key: string, value: any): void;
 };
 
 // 确保这里的导入路径正确
@@ -225,7 +225,7 @@ else {
         <Button key={item.code} buttonStyle="plain" intent={TogglePickedIntent(item.code)}>
           <HStack spacing={12} alignment="top">
             <Image
-              systemName={getIcon(item)}
+              systemName={getIcon(item.code)}
               font={22}
               foregroundStyle={getColor(item)}
             />

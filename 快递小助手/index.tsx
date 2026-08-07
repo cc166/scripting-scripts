@@ -13,7 +13,6 @@ import { extractPickupFromText, type PickupInfo } from "./pickup_parser"
 
 // =====================================
 // 全局声明 
-// =====================================
 declare const Storage: {
   get(key: string): any
   set(key: string, value: any): boolean
