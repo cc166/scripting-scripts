@@ -39,5 +39,5 @@
   "icon" : "arrow.triangle.2.circlepath.icloud.fill",
   "description" : "默认从公开仓库覆盖更新 13 个脚本，保留本地配置和数据；action=publish 发布受控仓库",
   "entry" : "index.tsx",
-  "version" : "1.2.0"
+  "version" : "1.2.1"
 }
