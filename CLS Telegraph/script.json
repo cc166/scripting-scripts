@@ -5,7 +5,7 @@
   "name" : "CLS Telegraph",
   "description" : null,
   "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/CLS%20Telegraph.scripting",
+    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/CLS%20Telegraph",
     "autoUpdateInterval" : 600
   },
   "localizedNames" : {
