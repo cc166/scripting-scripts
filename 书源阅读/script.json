@@ -20,8 +20,7 @@
   "author" : null,
   "remoteResource" : {
     "autoUpdateInterval" : 600,
-    "url" : "https:\/\/github.com\/ScriptingApp\/Community-Scripts\/raw\/refs\/heads\/main\/书源阅读.scripting",
-    "hash" : "10b6737377faecb2e51e085a9f0d9974"
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E4%B9%A6%E6%BA%90%E9%98%85%E8%AF%BB.scripting"
   },
   "entry" : "index.tsx",
   "color" : "#E47A44",
