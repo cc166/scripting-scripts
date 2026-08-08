@@ -7,7 +7,7 @@
   "entry": "index.tsx",
   "runInApp": true,
   "remoteResource": {
-    "url": "https://github.com/cc166/scripting-scripts/tree/main/Remote%20Registration%20Probe%2020260808",
+    "url": "https://raw.githubusercontent.com/cc166/scripting-scripts/main/releases/Remote%20Registration%20Probe%2020260808.scripting",
     "autoUpdateInterval": 600
   }
 }
