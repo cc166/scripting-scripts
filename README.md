@@ -1,38 +1,25 @@
-# scripting-scripts
+# Scripting Scripts
 
-Private monorepo for Scripting app projects maintained locally with agent assistance.
+用于备份和维护 Scripting 脚本的私有仓库。
 
-## Tracked projects
+## 说明
 
-- `镜花水月`
-- `和风天气`
-- `快递小助手`
-- `Github规则更新`
-- `panel`
-- `CLS Telegraph`
-- `Colorful Clouds`
-- `书源阅读`
-- `Pickup Code`
-- `Launch`
-- `中國聯通`
-- `项目历史管理器`
-- `私有脚本仓库同步`
+仓库包含原创脚本，以及基于公开脚本调整和维护的版本。第三方脚本的版权和许可归原作者及原项目所有，使用时请遵守对应许可与服务条款。
 
-This repository contains controlled copies of the maintained projects. The live Scripting projects remain under the Scripting iCloud `scripts/` directory.
+仓库不保存账号、凭据或私人配置。
 
-## Version policy
+## 致谢
 
-- `script.json.version` is the release version source of truth.
-- Routine internal changes do not automatically bump versions.
-- Release tags use `vX.Y.Z` and must match `script.json.version`.
-- `remoteResource.hash` is managed by Scripting and is not edited as a release version.
+感谢以下原作者和社区项目的分享与贡献：
 
-## Workflow
+- [7452323](https://github.com/7452323)：`镜花水月`、`和风天气`
+- [Wenyuan](https://github.com/wenyuanw)：`Pickup Code`
+- [gao](https://github.com/1085481057)：`快递小助手`
+- `Lucasss1916`：`Github规则更新`
+- [Ectimi](https://github.com/Ectimi)：`panel`
+- [Waa](https://github.com/iamwaa)：`项目历史管理器`
+- [ScriptingApp Community Scripts](https://github.com/ScriptingApp/Community-Scripts)：`Colorful Clouds`、`书源阅读`
+- [Jackie / Honye](https://github.com/Honye)：`CLS Telegraph`、`Launch`
+- [ByteValley](https://github.com/ByteValley/NetTool)：`中國聯通`
 
-1. Back up an existing live project with `project-auto-backup` before editing.
-2. Validate the target Scripting entry with diagnostics and focused runtime checks.
-3. Sync the changed project into this repository and inspect the diff.
-4. Run `私有脚本仓库同步` to upload and verify the controlled copy.
-5. Confirm the private remote contents and repository visibility.
-
-Secrets, local configuration, temporary files, generated output, dependencies, and caches must not be committed.
+具体来源以各项目的 `script.json` 和原项目说明为准。
