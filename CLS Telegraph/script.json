@@ -5,8 +5,7 @@
   "name" : "CLS Telegraph",
   "description" : null,
   "remoteResource" : {
-    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/CLS%20Telegraph",
-    "autoUpdateInterval" : 600
+    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/CLS%20Telegraph"
   },
   "localizedNames" : {
     "zh" : "财联社电报",
