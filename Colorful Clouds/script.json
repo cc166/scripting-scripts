@@ -19,7 +19,6 @@
   },
   "entry" : "index.tsx",
   "remoteResource" : {
-    "autoUpdateInterval" : 600,
     "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/Colorful%20Clouds"
   },
   "localizedDescriptions" : {
