@@ -27,8 +27,7 @@
   "name" : "Pickup Code",
   "remoteResource" : {
     "autoUpdateInterval" : 600,
-    "url" : "https:\/\/github.com\/wenyuanw\/scripting\/raw\/refs\/heads\/main\/release\/Pickup Code.scripting",
-    "hash" : "1a61cd0eff1034e4738558f42593a37c"
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Pickup%20Code.scripting"
   },
   "color" : "#7BA6BA"
 }
