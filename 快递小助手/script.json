@@ -24,9 +24,8 @@
   "runInApp" : true,
   "version" : "1.0.2",
   "remoteResource" : {
-    "autoUpdateInterval" : null,
-    "url" : "https:\/\/raw.githubusercontent.com\/1085481057\/Scripting\/refs\/heads\/main\/%E5%BF%AB%E9%80%92%E5%B0%8F%E5%8A%A9%E6%89%8B.scripting",
-    "hash" : "e58693c5ca537c766369a3ef3a14332c"
+    "autoUpdateInterval" : 600,
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E5%BF%AB%E9%80%92%E5%B0%8F%E5%8A%A9%E6%89%8B.scripting"
   },
   "icon" : "square.2.layers.3d.fill",
   "iconImage" : null,
