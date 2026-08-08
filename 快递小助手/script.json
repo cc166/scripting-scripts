@@ -24,7 +24,7 @@
   "runInApp" : true,
   "version" : "1.0.2",
   "remoteResource" : {
-    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/%E5%BF%AB%E9%80%92%E5%B0%8F%E5%8A%A9%E6%89%8B"
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E5%BF%AB%E9%80%92%E5%B0%8F%E5%8A%A9%E6%89%8B.scripting"
   },
   "icon" : "square.2.layers.3d.fill",
   "iconImage" : null,
