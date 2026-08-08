@@ -12,7 +12,7 @@
   "author" : null,
   "remoteResource" : {
     "autoUpdateInterval" : 600,
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/panel.scripting"
+    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/panel"
   },
   "localizedDescriptions" : {
     "es" : "",
