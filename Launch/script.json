@@ -32,8 +32,7 @@
 
   ],
   "remoteResource" : {
-    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/Launch",
-    "autoUpdateInterval" : 600
+    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/Launch"
   },
   "icon" : "appclip",
   "color" : "rgba(243, 159, 68,1)"
