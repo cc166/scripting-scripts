@@ -19,9 +19,8 @@
   },
   "entry" : "index.tsx",
   "remoteResource" : {
-    "hash" : "48435800bb278a147d3010d39c2a8a15",
-    "autoUpdateInterval" : null,
-    "url" : "https:\/\/github.com\/ScriptingApp\/Community-Scripts\/raw\/refs\/heads\/main\/Colorful Clouds.scripting"
+    "autoUpdateInterval" : 600,
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Colorful%20Clouds.scripting"
   },
   "localizedDescriptions" : {
     "zh" : "",
