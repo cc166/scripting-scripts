@@ -1,0 +1,42 @@
+{
+  "version" : "1.0.0",
+  "entry" : "index.tsx",
+  "runInApp" : false,
+  "name" : "CLS Telegraph",
+  "description" : null,
+  "remoteResource" : {
+    "url" : "https:\/\/github.com\/Honye\/scripting-scripts\/tree\/main\/scripts\/CLS Telegraph",
+    "autoUpdateInterval" : 600,
+    "hash" : "a19d016a7a547555ef8eef36977ef79a"
+  },
+  "localizedNames" : {
+    "zh" : "财联社电报",
+    "en" : "CLS Telegraph"
+  },
+  "author" : {
+    "email" : "Honye@github.com",
+    "name" : "Jackie",
+    "homepage" : "https:\/\/t.me\/iiMarkr"
+  },
+  "intentInputTypes" : [
+
+  ],
+  "icon" : "newspaper.fill",
+  "localizedDescriptions" : {
+    "zh" : "",
+    "ru" : "",
+    "pt" : "",
+    "de" : "",
+    "it" : "",
+    "en" : "",
+    "ja" : "",
+    "es" : "",
+    "fr" : ""
+  },
+  "contributors" : [
+
+  ],
+  "color" : "rgba(230, 36, 41, 1)",
+  "permissions" : null,
+  "iconImage" : null
+}
