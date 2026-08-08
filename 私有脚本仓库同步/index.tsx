@@ -5,6 +5,8 @@ const REPO = "scripting-scripts"
 const BRANCH = "main"
 const SOURCE_ROOT = `${FileManager.iCloudDocumentsDirectory}/scripting-repos/scripting-scripts`
 
+const RELEASES_ROOT = `${SOURCE_ROOT}/releases`
+
 const PROJECTS = new Set([
   "镜花水月",
   "和风天气",
@@ -21,9 +23,11 @@ const PROJECTS = new Set([
   "私有脚本仓库同步",
 ])
 
-const ROOT_FILES = new Set([".gitignore", "README.md"])
+const ROOT_FILES = new Set([".gitignore", "README.md", "THIRD_PARTY_NOTICES.md"])
+const RELEASE_DIRECTORY = "releases"
 
 type SyncResult = {
+  packaged: number
   scanned: number
   created: number
   updated: number
@@ -56,7 +60,8 @@ function isTrackedPath(relativePath: string): boolean {
     return ROOT_FILES.has(relativePath)
   }
 
-  return PROJECTS.has(relativePath.split("/", 1)[0])
+  const root = relativePath.split("/", 1)[0]
+  return root === RELEASE_DIRECTORY || PROJECTS.has(root)
 }
 
 function errorText(error: unknown): string {
@@ -81,6 +86,44 @@ async function readLocalData(path: string): Promise<Data> {
   }
 
   return FileManager.readAsData(path)
+}
+
+async function prepareReleasePackages(): Promise<number> {
+  FileManager.createDirectorySync(RELEASES_ROOT, true)
+
+  for (const project of PROJECTS) {
+    const projectPath = `${SOURCE_ROOT}/${project}`
+    if (!FileManager.isDirectorySync(projectPath)) {
+      throw new Error(`tracked project missing locally: ${project}`)
+    }
+
+    const projectFiles = (await FileManager.readDirectory(projectPath, true))
+      .map(path => (path.startsWith("/") ? path : `${projectPath}/${path.replace(/^\.\//, "")}`))
+      .filter(path => FileManager.isFileSync(path))
+
+    for (const path of projectFiles) {
+      if (FileManager.isFileStoredIniCloud(path) && !FileManager.isiCloudFileDownloaded(path)) {
+        const downloaded = await FileManager.downloadFileFromiCloud(path)
+        if (!downloaded) throw new Error(`iCloud file download failed: ${path}`)
+      }
+    }
+
+    const outputPath = `${RELEASES_ROOT}/${project}.scripting`
+    if (FileManager.existsSync(outputPath)) FileManager.removeSync(outputPath)
+    await FileManager.zip(projectPath, outputPath, false)
+
+    const verifyPath = `${FileManager.temporaryDirectory}/scripting-release-verify-${encodeURIComponent(project)}`
+    if (FileManager.existsSync(verifyPath)) FileManager.removeSync(verifyPath)
+    await FileManager.createDirectory(verifyPath, true)
+    await FileManager.unzip(outputPath, verifyPath)
+    if (!FileManager.isFileSync(`${verifyPath}/script.json`)) {
+      throw new Error(`release archive root missing script.json: ${project}`)
+    }
+    FileManager.removeSync(verifyPath)
+    console.log(`[packaged] releases/${project}.scripting`)
+  }
+
+  return PROJECTS.size
 }
 
 async function getRemoteFile(path: string): Promise<Record<string, any> | null> {
@@ -130,6 +173,7 @@ async function syncFile(relativePath: string, localData: Data): Promise<"created
 
 async function run(): Promise<void> {
   const result: SyncResult = {
+    packaged: 0,
     scanned: 0,
     created: 0,
     updated: 0,
@@ -145,6 +189,8 @@ async function run(): Promise<void> {
     if (!FileManager.existsSync(SOURCE_ROOT)) {
       throw new Error(`controlled repository not found: ${SOURCE_ROOT}`)
     }
+
+    result.packaged = await prepareReleasePackages()
 
     const availability = GitHub.getAvailability()
     if (!availability.available) {
