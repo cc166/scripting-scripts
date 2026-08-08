@@ -1,0 +1,49 @@
+{
+  "description" : "",
+  "contributors" : [
+
+  ],
+  "localizedNames" : {
+    "en" : "",
+    "es" : "",
+    "fr" : "",
+    "ru" : "",
+    "ja" : "",
+    "zh" : "",
+    "pt" : "",
+    "it" : "",
+    "de" : ""
+  },
+  "intentInputTypes" : [
+
+  ],
+  "author" : {
+    "name" : "ByteValley",
+    "email" : null,
+    "homepage" : null
+  },
+  "localizedDescriptions" : {
+    "ru" : "",
+    "it" : "",
+    "pt" : "",
+    "en" : "",
+    "zh" : "",
+    "fr" : "",
+    "ja" : "",
+    "de" : "",
+    "es" : ""
+  },
+  "permissions" : null,
+  "runInApp" : false,
+  "version" : "1.0.0",
+  "remoteResource" : {
+    "hash" : "2102c01f42571fb78a5921735c23a5b3",
+    "autoUpdateInterval" : null,
+    "url" : "https:\/\/raw.githubusercontent.com\/ByteValley\/NetTool\/main\/Scripting\/Release\/中國聯通.scripting"
+  },
+  "icon" : "antenna.radiowaves.left.and.right",
+  "iconImage" : null,
+  "name" : "中國聯通",
+  "color" : "rgba(238, 92, 98,1)",
+  "entry" : "index.tsx"
+}
