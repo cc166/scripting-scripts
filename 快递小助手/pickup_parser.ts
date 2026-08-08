@@ -11,11 +11,11 @@ const LOCATION_RE = /(?:到达|至|放|在|取件地[:：]|地址[:：])\s*([^�
 const GENERIC_RE = /(菜鸟|蜂巢|丰巢|兔喜|兔喜生活|极兔|顺丰|京东|韵达|中通|圆通|申通|邮政|EMS|妈妈驿站|欢猫驿站|驿站|日日顺|德邦)/i
 const CODE_TOKEN = "[A-Z0-9]{1,12}(?:-[A-Z0-9]{1,12}){0,3}"
 const CODE_AFTER_KEYWORD_RE = new RegExp(
-  `(?:取件码|取货码|验证码|提货码|取件|取货|请凭|凭)\s*[:：]?\s*(${CODE_TOKEN})`,
+  `(?:取件码|取货码|验证码|提货码|取件|取货|请凭|凭)\\s*[:：]?\\s*(${CODE_TOKEN})`,
   "gi"
 )
 const CODE_BEFORE_ACTION_RE = new RegExp(
-  `(${CODE_TOKEN})\s*(?:取件|取货)`,
+  `(${CODE_TOKEN})\\s*(?:取件|取货)`,
   "gi"
 )
 
