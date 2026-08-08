@@ -1,0 +1,31 @@
+{
+  "iconImage" : "",
+  "description" : "A modular MVP script for book-source-based reading, with source management, search, reading, and widget support.",
+  "localizedNames" : {
+    "zh" : "书源阅读",
+    "en" : "Book Source Reader"
+  },
+  "localizedDescriptions" : {
+    "zh" : "一个可扩展的书源阅读脚本 MVP，支持书源管理、搜索、阅读和最近阅读小组件。",
+    "en" : "A modular MVP for source-based reading with source management, search, reading, and a widget."
+  },
+  "permissions" : null,
+  "runInApp" : false,
+  "name" : "书源阅读",
+  "contributors" : [
+
+  ],
+  "icon" : "books.vertical.fill",
+  "version" : "0.1.0",
+  "author" : null,
+  "remoteResource" : {
+    "autoUpdateInterval" : 600,
+    "url" : "https:\/\/github.com\/ScriptingApp\/Community-Scripts\/raw\/refs\/heads\/main\/书源阅读.scripting",
+    "hash" : "10b6737377faecb2e51e085a9f0d9974"
+  },
+  "entry" : "index.tsx",
+  "color" : "#E47A44",
+  "intentInputTypes" : [
+
+  ]
+}
