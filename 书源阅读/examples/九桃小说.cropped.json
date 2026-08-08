@@ -1,0 +1,40 @@
+{
+  "bookSourceName": "九桃小说（裁剪版）",
+  "bookSourceUrl": "http://00txs.com",
+  "bookSourceGroup": "内置真实样例",
+  "adapter": "htmlRule",
+  "enabled": true,
+  "notes": "基于社区书源裁剪，保留 HTML + CSS 选择器 + replaceRegex 子集。",
+  "rules": {
+    "search": {
+      "url": "http://00txs.com/novel/search?searchkey={{key}}",
+      "list": ".library li",
+      "title": "a.bookname",
+      "detailUrl": "a.bookname@href",
+      "author": "a.author",
+      "summary": "p.intro",
+      "cover": "a.bookimg > img@src",
+      "language": "p:nth-child(4) > a:nth-child(3)"
+    },
+    "detail": {
+      "summary": "body > div.main > div > div.left.w_860 > div:nth-child(2) > div.content > p",
+      "contentUrl": "body > div.main > div > div.left.w_860 > div:nth-child(1) > div.detail > p.action > a@href"
+    },
+    "toc": {
+      "list": "div.read dl:nth-child(2) dd",
+      "title": "a@text",
+      "contentUrl": "a@href"
+    },
+    "content": {
+      "text": "#content@html",
+      "replaceRegex": [
+        "</p><p>##\n ",
+        "<p>## ",
+        "</p>",
+        "<p style=\"text-align: center;\">",
+        "老域名\\(9txs\\)被墙，请您牢记本站最新域名\\(00txs.com\\)",
+        "九桃小说"
+      ]
+    }
+  }
+}
