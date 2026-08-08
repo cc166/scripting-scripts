@@ -17,7 +17,7 @@ Private monorepo for Scripting app projects maintained locally with agent assist
 - `中國聯通`
 - `项目历史管理器`
 
-This repository contains controlled copies of maintained projects. Live projects remain in the Scripting iCloud `scripts/` directory.
+This repository contains controlled copies of the maintained projects. The live Scripting projects remain under the Scripting iCloud `scripts/` directory.
 
 ## Version policy
 
@@ -30,7 +30,8 @@ This repository contains controlled copies of maintained projects. Live projects
 
 1. Back up an existing live project with `project-auto-backup` before editing.
 2. Validate the target Scripting entry with diagnostics and focused runtime checks.
-3. Sync the changed project into the repository workdir and inspect the diff.
-4. Commit only verified project changes to this private repository.
+3. Sync the changed project into this repository and inspect the diff.
+4. Commit verified changes locally.
+5. Push to the private remote after checking the diff and repository visibility.
 
 Secrets, local configuration, temporary files, generated output, dependencies, and caches must not be committed.
