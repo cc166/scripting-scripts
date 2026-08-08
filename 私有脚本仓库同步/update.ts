@@ -23,6 +23,7 @@ const MAX_TOTAL_ARCHIVE_BYTES = 100 * 1024 * 1024
 const MAX_EXPANDED_BYTES = 100 * 1024 * 1024
 const MAX_ENTRY_BYTES = 20 * 1024 * 1024
 const MAX_ENTRIES = 2000
+const DOWNLOAD_ATTEMPTS = 3
 
 const EXCLUDED_DIRECTORIES = new Set([
   ".git",
@@ -357,9 +358,26 @@ function inspectArchive(bytes: Uint8Array): ArchiveEntry[] {
   return entries
 }
 
+async function wait(milliseconds: number): Promise<void> {
+  await new Promise<void>(resolve => setTimeout(resolve, milliseconds))
+}
+
+async function fetchArchive(project: ProjectName, url: string): Promise<Awaited<ReturnType<typeof fetch>>> {
+  let lastError: unknown = new Error("download did not start")
+  for (let attempt = 1; attempt <= DOWNLOAD_ATTEMPTS; attempt++) {
+    try {
+      return await fetch(url, { timeout: 45, debugLabel: `Repository update: ${project}` })
+    } catch (error) {
+      lastError = error
+      if (attempt < DOWNLOAD_ATTEMPTS) await wait(attempt * 1000)
+    }
+  }
+  throw new Error(`download request failed for ${project} after ${DOWNLOAD_ATTEMPTS} attempts: ${errorText(lastError)}`)
+}
+
 async function downloadArchive(project: ProjectName, destination: string): Promise<Uint8Array> {
   const url = `${RELEASE_BASE}/${encodeURIComponent(project)}.scripting`
-  const response = await fetch(url, { timeout: 45, debugLabel: `Repository update: ${project}` })
+  const response = await fetchArchive(project, url)
   if (!response.ok) throw new Error(`download failed for ${project}: HTTP ${response.status}`)
   if (!response.url.startsWith(`${RELEASE_BASE}/`)) throw new Error(`unexpected download origin for ${project}`)
   if (response.expectedContentLength != null && response.expectedContentLength > MAX_ARCHIVE_BYTES) {
