@@ -1,0 +1,32 @@
+{
+  "bookSourceName": "HTML Rule Demo",
+  "bookSourceUrl": "https://example.com",
+  "bookSourceGroup": "规则源",
+  "adapter": "htmlRule",
+  "enabled": true,
+  "notes": "HTML + CSS 选择器规则示例，请替换为真实站点。",
+  "rules": {
+    "search": {
+      "url": "https://example.com/search?q={{key}}",
+      "list": ".book-item",
+      "title": ".book-title",
+      "detailUrl": "a@href",
+      "author": ".book-author",
+      "summary": ".book-summary",
+      "cover": "img@src"
+    },
+    "detail": {
+      "summary": ".book-desc",
+      "chapterTitle": ".read-button",
+      "contentUrl": ".read-button@href"
+    },
+    "toc": {
+      "list": ".chapter-item",
+      "title": ".chapter-title",
+      "contentUrl": "a@href"
+    },
+    "content": {
+      "text": ".article-content"
+    }
+  }
+}
