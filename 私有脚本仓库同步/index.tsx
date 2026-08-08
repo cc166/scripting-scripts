@@ -149,7 +149,7 @@ async function syncFile(relativePath: string, localData: Data): Promise<"created
     }
   }
 
-  await GitHub.putContent({
+  const upload = await GitHub.putContent({
     owner: OWNER,
     repo: REPO,
     path: relativePath,
@@ -163,9 +163,13 @@ async function syncFile(relativePath: string, localData: Data): Promise<"created
     },
   })
 
-  const uploaded = await GitHub.getRawContent({ owner: OWNER, repo: REPO, path: relativePath, ref: BRANCH })
+  const uploadedSha = String(upload.content?.sha ?? "")
+  if (!uploadedSha) {
+    throw new Error("GitHub upload response missing content SHA")
+  }
+  const uploaded = await GitHub.getBlob({ owner: OWNER, repo: REPO, sha: uploadedSha })
   if (digest(uploaded) !== digest(localData)) {
-    throw new Error("remote verification hash mismatch")
+    throw new Error("uploaded blob verification hash mismatch")
   }
 
   return remote ? "updated" : "created"
