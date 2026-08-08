@@ -26,7 +26,6 @@
   },
   "name" : "Pickup Code",
   "remoteResource" : {
-    "autoUpdateInterval" : 600,
     "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/Pickup%20Code"
   },
   "color" : "#7BA6BA"
