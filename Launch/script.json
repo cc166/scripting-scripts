@@ -32,7 +32,7 @@
 
   ],
   "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Launch.scripting",
+    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/Launch",
     "autoUpdateInterval" : 600
   },
   "icon" : "appclip",
