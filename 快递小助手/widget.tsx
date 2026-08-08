@@ -6,7 +6,7 @@ import { extractPickupFromText, type PickupInfo } from "./pickup_parser"
 
 declare const Storage: { 
   get<T>(key: string): T | undefined; 
-  set(key: string, value: any): void;
+  set(key: string, value: any): void; 
 };
 
 // 确保这里的导入路径正确
