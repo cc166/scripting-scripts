@@ -32,7 +32,7 @@
 
   ],
   "remoteResource" : {
-    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/Launch"
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Launch.scripting"
   },
   "icon" : "appclip",
   "color" : "rgba(243, 159, 68,1)"
