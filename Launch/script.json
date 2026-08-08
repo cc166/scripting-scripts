@@ -31,6 +31,10 @@
   "contributors" : [
 
   ],
+  "remoteResource" : {
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Launch.scripting",
+    "autoUpdateInterval" : 600
+  },
   "icon" : "appclip",
   "color" : "rgba(243, 159, 68,1)"
 }
