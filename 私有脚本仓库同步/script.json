@@ -1,0 +1,8 @@
+{
+  "name": "私有脚本仓库同步",
+  "icon": "arrow.triangle.2.circlepath.icloud.fill",
+  "color": "#0A84FF",
+  "version": "1.0.0",
+  "description": "将 agent 维护的受控脚本副本同步到 GitHub 私有仓库",
+  "runInApp": true
+}
