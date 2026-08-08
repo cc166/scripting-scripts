@@ -37,7 +37,7 @@
   "runInApp" : false,
   "version" : "1.0.0",
   "remoteResource" : {
-    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/%E4%B8%AD%E5%9C%8B%E8%81%AF%E9%80%9A"
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E4%B8%AD%E5%9C%8B%E8%81%AF%E9%80%9A.scripting"
   },
   "icon" : "antenna.radiowaves.left.and.right",
   "iconImage" : null,
