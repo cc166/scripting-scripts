@@ -4,9 +4,8 @@
 
   ],
   "remoteResource" : {
-    "url" : "https:\/\/github.com\/7452323\/QuantumultX\/tree\/main\/Scripting\/Scripts\/镜花水月",
-    "hash" : "6f2215d6cf4baeba8d1d039ae6f288ca",
-    "autoUpdateInterval" : null
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E9%95%9C%E8%8A%B1%E6%B0%B4%E6%9C%88.scripting",
+    "autoUpdateInterval" : 600
   },
   "description" : "镜花水月",
   "localizedDescriptions" : {
