@@ -2,7 +2,7 @@
   "name": "Remote Registration Probe 20260808",
   "icon": "network",
   "color": "#007AFF",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Temporary isolated probe for Scripting remote resource registration",
   "entry": "index.tsx",
   "runInApp": true,
