@@ -41,6 +41,6 @@
   "icon" : "clock.arrow.circlepath",
   "runInApp" : true,
   "remoteResource" : {
-    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/%E9%A1%B9%E7%9B%AE%E5%8E%86%E5%8F%B2%E7%AE%A1%E7%90%86%E5%99%A8"
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E9%A1%B9%E7%9B%AE%E5%8E%86%E5%8F%B2%E7%AE%A1%E7%90%86%E5%99%A8.scripting"
   }
 }
