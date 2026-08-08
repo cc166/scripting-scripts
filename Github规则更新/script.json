@@ -18,8 +18,7 @@
   },
   "version" : "1.0.1",
   "remoteResource" : {
-    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/Github%E8%A7%84%E5%88%99%E6%9B%B4%E6%96%B0",
-    "autoUpdateInterval" : 600
+    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/Github%E8%A7%84%E5%88%99%E6%9B%B4%E6%96%B0"
   },
   "description" : "直接在已有规则文件基础上，添加新规则",
   "iconImage" : "",
