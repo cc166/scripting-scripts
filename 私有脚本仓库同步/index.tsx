@@ -97,9 +97,24 @@ async function prepareReleasePackages(): Promise<number> {
       throw new Error(`tracked project missing locally: ${project}`)
     }
 
-    const projectFiles = (await FileManager.readDirectory(projectPath, true))
-      .map(path => (path.startsWith("/") ? path : `${projectPath}/${path.replace(/^\.\//, "")}`))
-      .filter(path => FileManager.isFileSync(path))
+    const projectEntries = (await FileManager.readDirectory(projectPath, true)).map(path => {
+      const relativePath = path.startsWith(`${projectPath}/`)
+        ? path.slice(projectPath.length + 1)
+        : path.replace(/^\.\//, "")
+      const absolutePath = path.startsWith("/") ? path : `${projectPath}/${relativePath}`
+      return { absolutePath, relativePath }
+    })
+
+    const unsafePaths = projectEntries
+      .filter(item => shouldExclude(item.relativePath))
+      .map(item => item.relativePath)
+    if (unsafePaths.length > 0) {
+      throw new Error(`release blocked by excluded paths in ${project}: ${unsafePaths.join(", ")}`)
+    }
+
+    const projectFiles = projectEntries
+      .filter(item => FileManager.isFileSync(item.absolutePath))
+      .map(item => item.absolutePath)
 
     for (const path of projectFiles) {
       if (FileManager.isFileStoredIniCloud(path) && !FileManager.isiCloudFileDownloaded(path)) {
