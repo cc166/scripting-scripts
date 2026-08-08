@@ -1,0 +1,34 @@
+{
+  "author" : {
+    "email" : "i@wenyuanw.me",
+    "homepage" : "https:\/\/github.com\/wenyuanw",
+    "name" : "Wenyuan"
+  },
+  "version" : "0.0.3",
+  "icon" : "popcorn",
+  "runInApp" : false,
+  "localizedNames" : {
+    "en" : "Pickup Code",
+    "zh" : "取餐码上岛"
+  },
+  "description" : "修改自 Ryan 大佬的[取码器小助手](https:\/\/github.com\/ryanfwy\/scripting，感谢大佬的分享。\n脚本使用大模型通过截图或照片来解析取餐信息，再通过【实时活动】来展示取餐码。",
+  "contributors" : [
+
+  ],
+  "intentInputTypes" : [
+
+  ],
+  "entry" : "index.tsx",
+  "iconImage" : null,
+  "localizedDescriptions" : {
+    "zh" : "脚本使用大模型通过截图或照片来解析取餐信息，再通过【实时活动】来展示取餐码。修改自 Ryan 大佬的【[取码器小助手](https:\/\/github.com\/ryanfwy\/scripting\/tree\/master?tab=readme-ov-file#pickup-code-assistant)】，感谢大佬的分享。",
+    "en" : "This script uses AI model to act as a \"Pickup Code Assistant\", which parses information through screenshots or photos, and then displays the code on the \"Live Activities\". Modified from Ryan's [Pickup Code Assistant](https:\/\/github.com\/ryanfwy\/scripting\/tree\/master?tab=readme-ov-file#pickup-code-assistant), thanks for the sharing."
+  },
+  "name" : "Pickup Code",
+  "remoteResource" : {
+    "autoUpdateInterval" : 600,
+    "url" : "https:\/\/github.com\/wenyuanw\/scripting\/raw\/refs\/heads\/main\/release\/Pickup Code.scripting",
+    "hash" : "1a61cd0eff1034e4738558f42593a37c"
+  },
+  "color" : "#7BA6BA"
+}
