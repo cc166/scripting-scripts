@@ -1,0 +1,26 @@
+{
+  "bookSourceName": "Legado HTML Demo",
+  "bookSourceUrl": "https://example.com",
+  "bookSourceGroup": "Legado 导入",
+  "enabled": true,
+  "searchUrl": "https://example.com/search?q={{key}}",
+  "ruleSearch": {
+    "bookList": ".book-item",
+    "name": ".book-title",
+    "author": ".book-author",
+    "intro": ".book-summary",
+    "coverUrl": "img@src",
+    "bookUrl": "a@href"
+  },
+  "ruleBookInfo": {
+    "intro": ".book-desc"
+  },
+  "ruleToc": {
+    "chapterList": ".chapter-item",
+    "chapterName": ".chapter-title",
+    "chapterUrl": "a@href"
+  },
+  "ruleContent": {
+    "content": ".article-content"
+  }
+}
