@@ -1,0 +1,39 @@
+{
+  "bookSourceName": "九桃小说",
+  "bookSourceUrl": "http://00txs.com",
+  "ruleBookInfo": {
+    "author": "body > div.main > div > div.left.w_860 > div:nth-child(1) > div.detail > p:nth-child(3) > a:nth-child(1)",
+    "coverUrl": "body > div.main > div > div.left.w_860 > div:nth-child(1) > div.detail > a > img@src",
+    "intro": "body > div.main > div > div.left.w_860 > div:nth-child(2) > div.content > p",
+    "kind": "body > div.main > div > div.left.w_860 > div:nth-child(1) > div.detail > p:nth-child(3) > a:nth-child(2)",
+    "lastChapter": "body > div.main > div > div.left.w_860 > div:nth-child(1) > div.detail > p:nth-child(4) > a",
+    "name": "body > div.main > div > div.left.w_860 > div:nth-child(1) > div.detail > h1",
+    "tocUrl": "body > div.main > div > div.left.w_860 > div:nth-child(1) > div.detail > p.action > a@href"
+  },
+  "ruleContent": {
+    "content": "#content@html",
+    "replaceRegex": [
+      "</p><p>##\n ",
+      "<p>## ",
+      "</p>",
+      "<p style=\"text-align: center;\">",
+      "老域名\\(9txs\\)被墙，请您牢记本站最新域名\\(00txs.com\\)",
+      "九桃小说"
+    ]
+  },
+  "ruleSearch": {
+    "bookList": ".library li",
+    "name": "a.bookname",
+    "author": "a.author",
+    "bookUrl": "a.bookname@href",
+    "coverUrl": "a.bookimg > img@src",
+    "intro": "p.intro",
+    "kind": "p:nth-child(4) > a:nth-child(3)"
+  },
+  "ruleToc": {
+    "chapterList": "div.read dl:nth-child(2) dd",
+    "chapterName": "a@text",
+    "chapterUrl": "a@href"
+  },
+  "searchUrl": "http://00txs.com/novel/search?searchkey={{key}}"
+}
