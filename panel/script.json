@@ -12,8 +12,7 @@
   "author" : null,
   "remoteResource" : {
     "autoUpdateInterval" : 600,
-    "url" : "https:\/\/github.com\/Ectimi\/scripting-panel",
-    "hash" : "3ec077b5797658723f0fd4fea96a9e9b"
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/panel.scripting"
   },
   "localizedDescriptions" : {
     "es" : "",
