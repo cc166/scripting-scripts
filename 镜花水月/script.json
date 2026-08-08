@@ -1,0 +1,49 @@
+{
+  "name" : "镜花水月",
+  "contributors" : [
+
+  ],
+  "remoteResource" : {
+    "url" : "https:\/\/github.com\/7452323\/QuantumultX\/tree\/main\/Scripting\/Scripts\/镜花水月",
+    "hash" : "6f2215d6cf4baeba8d1d039ae6f288ca",
+    "autoUpdateInterval" : null
+  },
+  "description" : "镜花水月",
+  "localizedDescriptions" : {
+    "it" : "",
+    "ru" : "",
+    "pt" : "",
+    "es" : "",
+    "fr" : "",
+    "de" : "",
+    "ja" : "",
+    "en" : "",
+    "zh" : ""
+  },
+  "icon" : "livephoto",
+  "permissions" : null,
+  "runInApp" : false,
+  "color" : "rgba(28, 140, 255,1)",
+  "author" : {
+    "email" : "7452323@gmail.com",
+    "name" : "7452323",
+    "homepage" : "https:\/\/github.com\/7452323"
+  },
+  "version" : "1.0.0",
+  "iconImage" : "",
+  "entry" : "index.tsx",
+  "localizedNames" : {
+    "en" : "",
+    "de" : "",
+    "ja" : "",
+    "zh" : "",
+    "fr" : "",
+    "ru" : "",
+    "es" : "",
+    "it" : "",
+    "pt" : ""
+  },
+  "intentInputTypes" : [
+
+  ]
+}
