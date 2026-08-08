@@ -1,0 +1,13 @@
+{
+  "name": "Remote Registration Probe 20260808",
+  "icon": "network",
+  "color": "#007AFF",
+  "version": "1.0.0",
+  "description": "Temporary isolated probe for Scripting remote resource registration",
+  "entry": "index.tsx",
+  "runInApp": true,
+  "remoteResource": {
+    "url": "https://github.com/cc166/scripting-scripts/tree/main/Remote%20Registration%20Probe%2020260808",
+    "autoUpdateInterval": 600
+  }
+}
