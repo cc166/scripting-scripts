@@ -1,0 +1,44 @@
+{
+  "contributors" : [
+
+  ],
+  "runInApp" : false,
+  "icon" : "square.2.layers.3d.fill",
+  "color" : "rgba(252, 124, 93,1)",
+  "entry" : "index.tsx",
+  "description" : null,
+  "iconImage" : null,
+  "version" : "1.0.0",
+  "author" : null,
+  "remoteResource" : {
+    "autoUpdateInterval" : 600,
+    "url" : "https:\/\/github.com\/Ectimi\/scripting-panel",
+    "hash" : "3ec077b5797658723f0fd4fea96a9e9b"
+  },
+  "localizedDescriptions" : {
+    "es" : "",
+    "it" : "",
+    "fr" : "",
+    "en" : "",
+    "ru" : "",
+    "pt" : "",
+    "zh" : "",
+    "ja" : "",
+    "de" : ""
+  },
+  "localizedNames" : {
+    "es" : "",
+    "ru" : "",
+    "fr" : "",
+    "it" : "",
+    "zh" : "",
+    "de" : "",
+    "pt" : "",
+    "ja" : "",
+    "en" : ""
+  },
+  "intentInputTypes" : [
+
+  ],
+  "name" : "panel"
+}
