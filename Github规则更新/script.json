@@ -17,7 +17,10 @@
     "homepage" : null
   },
   "version" : "1.0.1",
-  "remoteResource" : null,
+  "remoteResource" : {
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Github%E8%A7%84%E5%88%99%E6%9B%B4%E6%96%B0.scripting",
+    "autoUpdateInterval" : 600
+  },
   "description" : "直接在已有规则文件基础上，添加新规则",
   "iconImage" : "",
   "contributors" : [
