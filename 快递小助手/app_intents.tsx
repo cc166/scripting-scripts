@@ -2,7 +2,7 @@
 
 declare const Storage: { 
   get<T>(key: string): T | undefined; 
-  set(key: string, value: any): void;
+  set(key: string, value: any): void; 
 };
 
 // 🚀 最终修复：明确从 "scripting" 导入 Widget，保证 Intent 运行时找到变量。
