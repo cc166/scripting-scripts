@@ -5,7 +5,7 @@
   "name" : "CLS Telegraph",
   "description" : null,
   "remoteResource" : {
-    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/CLS%20Telegraph"
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/CLS%20Telegraph.scripting"
   },
   "localizedNames" : {
     "zh" : "财联社电报",
