@@ -12,6 +12,7 @@ console.log(JSON.stringify({
   version: Script.metadata.version,
   remoteResource: Script.metadata.remoteResource ?? null,
   sentinel,
+  codeMarker: "v2",
 }))
 
 Script.exit()
