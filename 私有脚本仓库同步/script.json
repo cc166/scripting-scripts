@@ -1,8 +1,12 @@
 {
-  "name": "私有脚本仓库同步",
+  "name": "脚本仓库同步",
   "icon": "arrow.triangle.2.circlepath.icloud.fill",
   "color": "#0A84FF",
-  "version": "1.0.0",
-  "description": "将 agent 维护的受控脚本副本同步到 GitHub 私有仓库",
-  "runInApp": true
+  "version": "1.1.0",
+  "description": "打包并同步维护中的 Scripting 脚本到 GitHub 公开仓库",
+  "runInApp": true,
+  "remoteResource": {
+    "url": "https://raw.githubusercontent.com/cc166/scripting-scripts/main/releases/%E7%A7%81%E6%9C%89%E8%84%9A%E6%9C%AC%E4%BB%93%E5%BA%93%E5%90%8C%E6%AD%A5.scripting",
+    "autoUpdateInterval": 600
+  }
 }
