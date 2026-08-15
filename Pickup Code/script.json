@@ -1,32 +1,26 @@
 {
-  "author" : {
-    "email" : "i@wenyuanw.me",
-    "homepage" : "https:\/\/github.com\/wenyuanw",
-    "name" : "Wenyuan"
+  "runInApp": false,
+  "iconImage": null,
+  "description": "修改自 Ryan 大佬的[取码器小助手](https://github.com/ryanfwy/scripting，感谢大佬的分享。\n脚本使用大模型通过截图或照片来解析取餐信息，再通过【实时活动】来展示取餐码。",
+  "permissions": null,
+  "localizedNames": {
+    "zh": "取餐码上岛",
+    "en": "Pickup Code"
   },
-  "version" : "0.0.3",
-  "icon" : "popcorn",
-  "runInApp" : false,
-  "localizedNames" : {
-    "en" : "Pickup Code",
-    "zh" : "取餐码上岛"
+  "author": {
+    "email": "i@wenyuanw.me",
+    "name": "Wenyuan",
+    "homepage": "https://github.com/wenyuanw"
   },
-  "description" : "修改自 Ryan 大佬的[取码器小助手](https:\/\/github.com\/ryanfwy\/scripting，感谢大佬的分享。\n脚本使用大模型通过截图或照片来解析取餐信息，再通过【实时活动】来展示取餐码。",
-  "contributors" : [
-
-  ],
-  "intentInputTypes" : [
-
-  ],
-  "entry" : "index.tsx",
-  "iconImage" : null,
-  "localizedDescriptions" : {
-    "zh" : "脚本使用大模型通过截图或照片来解析取餐信息，再通过【实时活动】来展示取餐码。修改自 Ryan 大佬的【[取码器小助手](https:\/\/github.com\/ryanfwy\/scripting\/tree\/master?tab=readme-ov-file#pickup-code-assistant)】，感谢大佬的分享。",
-    "en" : "This script uses AI model to act as a \"Pickup Code Assistant\", which parses information through screenshots or photos, and then displays the code on the \"Live Activities\". Modified from Ryan's [Pickup Code Assistant](https:\/\/github.com\/ryanfwy\/scripting\/tree\/master?tab=readme-ov-file#pickup-code-assistant), thanks for the sharing."
+  "color": "#7BA6BA",
+  "name": "Pickup Code",
+  "intentInputTypes": [],
+  "localizedDescriptions": {
+    "zh": "脚本使用大模型通过截图或照片来解析取餐信息，再通过【实时活动】来展示取餐码。修改自 Ryan 大佬的【[取码器小助手](https://github.com/ryanfwy/scripting/tree/master?tab=readme-ov-file#pickup-code-assistant)】，感谢大佬的分享。",
+    "en": "This script uses AI model to act as a \"Pickup Code Assistant\", which parses information through screenshots or photos, and then displays the code on the \"Live Activities\". Modified from Ryan's [Pickup Code Assistant](https://github.com/ryanfwy/scripting/tree/master?tab=readme-ov-file#pickup-code-assistant), thanks for the sharing."
   },
-  "name" : "Pickup Code",
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Pickup%20Code.scripting"
-  },
-  "color" : "#7BA6BA"
+  "version": "0.0.4",
+  "contributors": [],
+  "icon": "popcorn",
+  "entry": "index.tsx"
 }
