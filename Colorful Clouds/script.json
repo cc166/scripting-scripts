@@ -1,43 +1,36 @@
 {
-  "contributors" : [
-
-  ],
-  "runInApp" : false,
-  "color" : "systemBlue",
-  "icon" : "cloud.sun.fill",
-  "author" : null,
-  "localizedNames" : {
-    "it" : "",
-    "pt" : "",
-    "ru" : "",
-    "zh" : "",
-    "en" : "",
-    "ja" : "",
-    "fr" : "",
-    "es" : "",
-    "de" : ""
+  "author": null,
+  "contributors": [],
+  "description": null,
+  "entry": "index.tsx",
+  "localizedDescriptions": {
+    "zh": "",
+    "en": "",
+    "ru": "",
+    "pt": "",
+    "ja": "",
+    "fr": "",
+    "es": "",
+    "de": "",
+    "it": ""
   },
-  "entry" : "index.tsx",
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Colorful%20Clouds.scripting"
+  "version": "1.0.1",
+  "permissions": null,
+  "iconImage": null,
+  "name": "Colorful Clouds",
+  "localizedNames": {
+    "zh": "",
+    "en": "",
+    "ru": "",
+    "de": "",
+    "ja": "",
+    "it": "",
+    "pt": "",
+    "es": "",
+    "fr": ""
   },
-  "localizedDescriptions" : {
-    "zh" : "",
-    "pt" : "",
-    "de" : "",
-    "ja" : "",
-    "it" : "",
-    "ru" : "",
-    "es" : "",
-    "en" : "",
-    "fr" : ""
-  },
-  "iconImage" : null,
-  "version" : "1.0.0",
-  "name" : "Colorful Clouds",
-  "intentInputTypes" : [
-
-  ],
-  "description" : null,
-  "permissions" : null
+  "icon": "cloud.sun.fill",
+  "intentInputTypes": [],
+  "runInApp": false,
+  "color": "systemBlue"
 }
