@@ -254,8 +254,7 @@ else {
 Widget.present(
   <VStack
     padding={16}
-    clipShape={{ type: "rect", cornerRadius: 26 }} 
-    background={{
+    widgetBackground={{
       gradient: {
         stops: [
             { color: "#FFFFFF", location: 0.0 },
