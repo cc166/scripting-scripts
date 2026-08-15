@@ -324,13 +324,39 @@ function SettingsPage() {
   )
 }
 
+function getConfigSnapshot(): string {
+  const cfg = loadConfig()
+  return JSON.stringify({
+    importedMessages: cfg.importedMessages,
+    pickedItems: cfg.pickedItems,
+  })
+}
+
 function MainView({ initialInfo, initialRefreshKey }: { initialInfo?: string | null, initialRefreshKey: number }) {
   const [refreshKey, setRefreshKey] = useState(initialRefreshKey);
   
   useEffect(() => {
     globalSetRefreshKey = setRefreshKey;
+    let isActive = true
+    let lastSnapshot = getConfigSnapshot()
+
+    const pollForChanges = () => {
+      setTimeout(() => {
+        if (!isActive) return
+
+        const nextSnapshot = getConfigSnapshot()
+        if (nextSnapshot !== lastSnapshot) {
+          lastSnapshot = nextSnapshot
+          setRefreshKey(Date.now())
+        }
+        pollForChanges()
+      }, 1000)
+    }
+    pollForChanges()
+
     return () => {
-        globalSetRefreshKey = null;
+      isActive = false
+      globalSetRefreshKey = null;
     };
   }, []);
 
