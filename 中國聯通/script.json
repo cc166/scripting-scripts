@@ -1,47 +1,40 @@
 {
-  "description" : "",
-  "contributors" : [
-
-  ],
-  "localizedNames" : {
-    "en" : "",
-    "es" : "",
-    "fr" : "",
-    "ru" : "",
-    "ja" : "",
-    "zh" : "",
-    "pt" : "",
-    "it" : "",
-    "de" : ""
+  "intentInputTypes": [],
+  "localizedNames": {
+    "zh": "",
+    "ja": "",
+    "de": "",
+    "es": "",
+    "pt": "",
+    "ru": "",
+    "en": "",
+    "it": "",
+    "fr": ""
   },
-  "intentInputTypes" : [
-
-  ],
-  "author" : {
-    "name" : "ByteValley",
-    "email" : null,
-    "homepage" : null
+  "permissions": null,
+  "color": "rgba(238, 92, 98,1)",
+  "contributors": [],
+  "description": "",
+  "runInApp": false,
+  "localizedDescriptions": {
+    "de": "",
+    "ja": "",
+    "pt": "",
+    "ru": "",
+    "it": "",
+    "fr": "",
+    "zh": "",
+    "en": "",
+    "es": ""
   },
-  "localizedDescriptions" : {
-    "ru" : "",
-    "it" : "",
-    "pt" : "",
-    "en" : "",
-    "zh" : "",
-    "fr" : "",
-    "ja" : "",
-    "de" : "",
-    "es" : ""
+  "icon": "antenna.radiowaves.left.and.right",
+  "iconImage": null,
+  "author": {
+    "homepage": null,
+    "email": null,
+    "name": "ByteValley"
   },
-  "permissions" : null,
-  "runInApp" : false,
-  "version" : "1.0.0",
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E4%B8%AD%E5%9C%8B%E8%81%AF%E9%80%9A.scripting"
-  },
-  "icon" : "antenna.radiowaves.left.and.right",
-  "iconImage" : null,
-  "name" : "中國聯通",
-  "color" : "rgba(238, 92, 98,1)",
-  "entry" : "index.tsx"
+  "version": "1.0.1",
+  "name": "中國聯通",
+  "entry": "index.tsx"
 }
