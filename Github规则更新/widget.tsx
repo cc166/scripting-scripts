@@ -458,6 +458,19 @@ function ErrorView({ message }: { message: string }) {
 
 // =============== 入口 ===============
 
+function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error('GitHub 数据请求超时，请稍后刷新')),
+      milliseconds,
+    )
+  })
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer !== undefined) clearTimeout(timer)
+  })
+}
+
 async function run() {
   const config = getWidgetConfig()
   const hasRepo = config.owner && config.repo
@@ -472,7 +485,7 @@ async function run() {
   }
 
   try {
-    const weeks = await fetchCommitActivity(config)
+    const weeks = await withTimeout(fetchCommitActivity(config), 8_000)
     const allDays = flattenSortedDays(weeks)
 
     if (family === "systemSmall") {
