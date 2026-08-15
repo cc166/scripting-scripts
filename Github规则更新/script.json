@@ -1,48 +1,43 @@
 {
-  "runInApp" : false,
-  "name" : "Github规则更新",
-  "contributors" : [
-
-  ],
-  "permissions" : null,
-  "intentInputTypes" : [
+  "name": "Github规则更新",
+  "contributors": [],
+  "permissions": null,
+  "localizedNames": {
+    "it": "",
+    "de": "",
+    "ru": "",
+    "pt": "",
+    "zh": "",
+    "en": "",
+    "ja": "",
+    "es": "",
+    "fr": ""
+  },
+  "color": "rgba(0, 0, 0, 1.00)",
+  "version": "1.1.1",
+  "iconImage": "",
+  "intentInputTypes": [
     "Text",
     "URLs"
   ],
-  "author" : {
-    "email" : null,
-    "homepage" : null,
-    "name" : "Lucasss1916"
+  "description": "直接在已有规则文件基础上，添加新规则",
+  "runInApp": false,
+  "localizedDescriptions": {
+    "de": "",
+    "pt": "",
+    "ru": "",
+    "zh": "",
+    "fr": "",
+    "it": "",
+    "ja": "",
+    "es": "",
+    "en": ""
   },
-  "description" : "直接在已有规则文件基础上，添加新规则",
-  "version" : "1.1.0",
-  "entry" : "index.tsx",
-  "iconImage" : "",
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Github%E8%A7%84%E5%88%99%E6%9B%B4%E6%96%B0.scripting"
+  "author": {
+    "email": null,
+    "homepage": null,
+    "name": "Lucasss1916"
   },
-  "localizedDescriptions" : {
-    "ru" : "",
-    "de" : "",
-    "en" : "",
-    "es" : "",
-    "pt" : "",
-    "ja" : "",
-    "it" : "",
-    "fr" : "",
-    "zh" : ""
-  },
-  "color" : "rgba(0, 0, 0, 1.00)",
-  "localizedNames" : {
-    "ru" : "",
-    "fr" : "",
-    "ja" : "",
-    "es" : "",
-    "pt" : "",
-    "en" : "",
-    "zh" : "",
-    "it" : "",
-    "de" : ""
-  },
-  "icon" : "network"
+  "entry": "index.tsx",
+  "icon": "network"
 }
