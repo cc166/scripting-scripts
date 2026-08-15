@@ -1,34 +1,25 @@
 {
-  "description" : "优化了长期不点击小组件卡顿的问题",
-  "contributors" : [
-
-  ],
-  "localizedNames" : {
-
+  "color": "rgba(243, 159, 68,1)",
+  "permissions": null,
+  "author": {
+    "email": "1085481057@qq.com",
+    "homepage": null,
+    "name": "gao"
   },
-  "intentInputTypes" : [
+  "contributors": [],
+  "name": "快递小助手",
+  "entry": "index.tsx",
+  "icon": "square.2.layers.3d.fill",
+  "description": "优化了长期不点击小组件卡顿的问题",
+  "runInApp": true,
+  "localizedNames": {},
+  "localizedDescriptions": {},
+  "iconImage": null,
+  "intentInputTypes": [
     "Text",
     "URLs",
     "Images",
     "FileURLs"
   ],
-  "author" : {
-    "name" : "gao",
-    "email" : "1085481057@qq.com",
-    "homepage" : null
-  },
-  "localizedDescriptions" : {
-
-  },
-  "permissions" : null,
-  "runInApp" : true,
-  "version" : "1.0.3",
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E5%BF%AB%E9%80%92%E5%B0%8F%E5%8A%A9%E6%89%8B.scripting"
-  },
-  "icon" : "square.2.layers.3d.fill",
-  "iconImage" : null,
-  "name" : "快递小助手",
-  "color" : "rgba(243, 159, 68,1)",
-  "entry" : "index.tsx"
+  "version": "1.0.4"
 }
