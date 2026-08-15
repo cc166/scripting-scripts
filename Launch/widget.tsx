@@ -1,13 +1,15 @@
 import {
   Button,
   Color,
-  Group,
   HStack,
   Image,
   Link,
+  Rectangle,
   RoundedRectangle,
+  Script,
   Spacer,
   VStack,
+  VirtualNode,
   ZStack,
   Widget,
   EnvironmentValuesReader
@@ -21,15 +23,22 @@ import {
   FILE_PATH,
   FOLDERS_PATH,
   Folder,
+  FolderStyle,
   getIconCachePath,
-  normalizeApps
+  migrateAppItem
 } from './constants'
-import { OpenAppIntent } from './app_intents'
+import { OpenAppIntent, RunButtonIntent } from './app_intents'
 
 function AppIcon({ item, config }: { item: AppItem; config?: Config }) {
   const size = config?.iconSize || DEFAULT_CONFIG.iconSize
-  const radius = config?.shape === 'circle' ? size / 2 : size * 0.225
+  const radius =
+    config?.shape === 'circle'
+      ? size / 2
+      : (config?.cornerRadius ?? size * 0.225)
   const useBundleId = item.mode === 'bundleId' && !!item.bundleId
+  const accentedRenderingMode =
+    config?.widgetAccentedRenderingMode ||
+    DEFAULT_CONFIG.widgetAccentedRenderingMode
   const iconContent = (
     <ZStack>
         {item.iconType === 'image' ? (
@@ -48,10 +57,7 @@ function AppIcon({ item, config }: { item: AppItem; config?: Config }) {
                     filePath={cachePath}
                     resizable
                     scaleToFill
-                    widgetAccentedRenderingMode={
-                      config?.widgetAccentedRenderingMode ||
-                      DEFAULT_CONFIG.widgetAccentedRenderingMode
-                    }
+                    widgetAccentedRenderingMode={accentedRenderingMode}
                   />
                 )
               }
@@ -60,10 +66,7 @@ function AppIcon({ item, config }: { item: AppItem; config?: Config }) {
                   imageUrl={item.icon}
                   resizable
                   scaleToFill
-                  widgetAccentedRenderingMode={
-                    config?.widgetAccentedRenderingMode ||
-                    DEFAULT_CONFIG.widgetAccentedRenderingMode
-                  }
+                  widgetAccentedRenderingMode={accentedRenderingMode}
                 />
               )
             })()}
@@ -90,10 +93,7 @@ function AppIcon({ item, config }: { item: AppItem; config?: Config }) {
                       resizable
                       scaleToFit
                       frame={{ width: size * 0.6, height: size * 0.6 }}
-                      widgetAccentedRenderingMode={
-                        config?.widgetAccentedRenderingMode ||
-                        DEFAULT_CONFIG.widgetAccentedRenderingMode
-                      }
+                      widgetAccentedRenderingMode={accentedRenderingMode}
                     />
                   )
                 }
@@ -103,10 +103,7 @@ function AppIcon({ item, config }: { item: AppItem; config?: Config }) {
                     resizable
                     scaleToFit
                     frame={{ width: size * 0.6, height: size * 0.6 }}
-                    widgetAccentedRenderingMode={
-                      config?.widgetAccentedRenderingMode ||
-                      DEFAULT_CONFIG.widgetAccentedRenderingMode
-                    }
+                    widgetAccentedRenderingMode={accentedRenderingMode}
                   />
                 )
               })()
@@ -116,10 +113,7 @@ function AppIcon({ item, config }: { item: AppItem; config?: Config }) {
                 foregroundStyle="white"
                 font={size * 0.5}
                 widgetAccentable
-                widgetAccentedRenderingMode={
-                  config?.widgetAccentedRenderingMode ||
-                  DEFAULT_CONFIG.widgetAccentedRenderingMode
-                }
+                widgetAccentedRenderingMode={accentedRenderingMode}
               />
             )}
           </Fragment>
@@ -127,19 +121,59 @@ function AppIcon({ item, config }: { item: AppItem; config?: Config }) {
       </ZStack>
   )
 
-  if (useBundleId) {
-    return (
-      <Button intent={OpenAppIntent(item.bundleId!)} buttonStyle="plain">
+  // SwiftUI bug: an `Image` using the `desaturated` / `accentedDesaturated`
+  // accented rendering modes swallows taps when it is the label of a `Link` or
+  // an intent `Button`, so the tap falls through to the widget itself and just
+  // opens Scripting. Work around it by keeping the icon out of the tappable
+  // view and overlaying a clear hit target that carries the link/intent.
+  const needsOverlayHitTarget =
+    accentedRenderingMode === 'desaturated' ||
+    accentedRenderingMode === 'accentedDesaturated'
+
+  const tappable = (wrap: (content: VirtualNode) => VirtualNode) =>
+    needsOverlayHitTarget ? (
+      <ZStack frame={{ width: size, height: size }}>
         {iconContent}
-      </Button>
+        {wrap(<Rectangle fill="clear" frame={{ width: size, height: size }} />)}
+      </ZStack>
+    ) : (
+      wrap(iconContent)
     )
+
+  if (item.mode === 'script') {
+    // `runInWidget` defaults to true: run the code in place, without leaving
+    // the Home Screen.
+    return item.runInWidget !== false
+      ? tappable(content => (
+          <Button intent={RunButtonIntent(item.id)} buttonStyle="plain">
+            {content}
+          </Button>
+        ))
+      : tappable(content => (
+          <Link
+            url={Script.createRunSingleURLScheme(Script.name, {
+              buttonId: item.id
+            })}
+            buttonStyle="plain"
+          >
+            {content}
+          </Link>
+        ))
   }
 
-  return (
-    <Link url={item.url}>
-      {iconContent}
+  if (useBundleId) {
+    return tappable(content => (
+      <Button intent={OpenAppIntent(item.bundleId!)} buttonStyle="plain">
+        {content}
+      </Button>
+    ))
+  }
+
+  return tappable(content => (
+    <Link url={item.url} buttonStyle="plain">
+      {content}
     </Link>
-  )
+  ))
 }
 
 export function LauncherWidget({
@@ -156,7 +190,7 @@ export function LauncherWidget({
     try {
       if (!apps && FileManager.existsSync(FILE_PATH)) {
         const str = FileManager.readAsStringSync(FILE_PATH)
-        apps = normalizeApps(JSON.parse(str))
+        apps = JSON.parse(str)
       }
       if (!config && FileManager.existsSync(CONFIG_PATH)) {
         const str = FileManager.readAsStringSync(CONFIG_PATH)
@@ -168,9 +202,10 @@ export function LauncherWidget({
   }
 
   if (!apps) {
-    apps = normalizeApps(DEFAULT_APPS)
+    apps = DEFAULT_APPS
   }
 
+  let folderStyle: FolderStyle | undefined
   const folderParam = Widget.parameter?.trim()
   if (folderParam) {
     try {
@@ -178,7 +213,12 @@ export function LauncherWidget({
         ? JSON.parse(FileManager.readAsStringSync(FOLDERS_PATH))
         : []
       const folder = foldersData.find(f => f.name === folderParam)
-      apps = folder ? apps.filter(a => a.folderId === folder.id) : []
+      folderStyle = folder?.style
+      apps = folder
+        ? apps.filter(a =>
+            migrateAppItem(a).folderIds?.includes(folder.id)
+          )
+        : []
     } catch (e) {
       console.error(e)
     }
@@ -191,6 +231,24 @@ export function LauncherWidget({
         ...config,
         ...configJson
       }
+    }
+  }
+
+  if (folderStyle) {
+    const base: Config = config ?? {
+      shape: DEFAULT_CONFIG.shape,
+      iconSize: DEFAULT_CONFIG.iconSize,
+      spacing: DEFAULT_CONFIG.spacing,
+      widgetAccentedRenderingMode: DEFAULT_CONFIG.widgetAccentedRenderingMode
+    }
+    config = {
+      ...base,
+      iconSize: folderStyle.iconSize ?? base.iconSize,
+      shape: folderStyle.shape ?? base.shape,
+      cornerRadius: folderStyle.cornerRadius ?? base.cornerRadius,
+      spacing: folderStyle.spacing ?? base.spacing,
+      widgetAccentedRenderingMode:
+        folderStyle.widgetAccentedRenderingMode ?? base.widgetAccentedRenderingMode
     }
   }
 
@@ -222,36 +280,26 @@ export function LauncherWidget({
   }
 
   return (
-    <Group
-      environments={{
-        openURL: url =>
-          OpenURLActionResult.systemAction({
-            url,
-            prefersInApp: false
-          })
+    <VStack
+      padding={{
+        leading: actualSpacing,
+        trailing: actualSpacing,
+        top: 16,
+        bottom: 16
       }}
+      spacing={preferredSpacing}
+      alignment="leading"
     >
-      <VStack
-        padding={{
-          leading: actualSpacing,
-          trailing: actualSpacing,
-          top: 16,
-          bottom: 16
-        }}
-        spacing={preferredSpacing}
-        alignment="leading"
-      >
-        <Spacer />
-        {rows.map((row, rowIndex) => (
-          <HStack key={rowIndex} spacing={actualSpacing}>
-            {row.map((item) => (
-              <AppIcon key={item.id} item={item} config={config} />
-            ))}
-          </HStack>
-        ))}
-        <Spacer />
-      </VStack>
-    </Group>
+      <Spacer />
+      {rows.map((row, rowIndex) => (
+        <HStack key={rowIndex} spacing={actualSpacing}>
+          {row.map((item) => (
+            <AppIcon key={item.id} item={item} config={config} />
+          ))}
+        </HStack>
+      ))}
+      <Spacer />
+    </VStack>
   )
 }
 
