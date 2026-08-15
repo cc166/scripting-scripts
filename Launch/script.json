@@ -1,39 +1,40 @@
 {
   "description" : null,
-  "name" : "Launch",
-  "entry" : "index.tsx",
   "localizedDescriptions" : {
     "en" : "",
-    "ru" : "",
+    "ja" : "",
+    "pt" : "",
+    "es" : "",
     "fr" : "",
+    "it" : "",
     "de" : "",
     "zh" : "",
-    "pt" : "",
-    "it" : "",
-    "ja" : "",
-    "es" : ""
+    "ru" : ""
   },
-  "version" : "1.5.4",
   "localizedNames" : {
     "zh" : "启动台",
     "en" : "Launch"
   },
-  "author" : {
-    "homepage" : "https:\/\/t.me\/iiMarkr",
-    "name" : "Jackie",
-    "email" : "Honye@github.com"
-  },
-  "iconImage" : null,
-  "runInApp" : false,
   "intentInputTypes" : [
 
   ],
+  "icon" : "appclip",
+  "entry" : "index.tsx",
+  "name" : "Launch",
   "contributors" : [
 
   ],
+  "iconImage" : null,
   "remoteResource" : {
     "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Launch.scripting"
   },
-  "icon" : "appclip",
-  "color" : "rgba(243, 159, 68,1)"
+  "version" : "1.6.0",
+  "author" : {
+    "homepage" : "https:\/\/t.me\/iiMarkr",
+    "email" : "Honye@github.com",
+    "name" : "Jackie"
+  },
+  "color" : "rgba(243, 159, 68,1)",
+  "permissions" : null,
+  "runInApp" : false
 }
