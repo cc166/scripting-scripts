@@ -2,9 +2,10 @@ import {
   Navigation, Script, TabView, Tab,
   VStack, HStack, Text, Button, TextField,
   Spacer, ScrollView, Image, LazyVGrid, ProgressView,
-  useState, useEffect, fetch, VideoPlayer,
-  NavigationStack, List, Section, GeometryReader,
+  useState, useEffect, useMemo, useRef, useObservable, fetch, VideoPlayer, AVPlayerView,
+  NavigationStack, List, Section, GeometryReader, ZStack, Rectangle,
 } from "scripting"
+import type { PIPStatus } from "scripting"
 
 // (download 函数运行时不存在，已改用 fetch + Data + FileManager)
 // Data.fromArrayBuffer 由运行时 Data 类提供，无需 custom declare
@@ -530,104 +531,395 @@ function AnimatedImagePage({ imgInfo, pageWidth, pageHeight }: { imgInfo: ImageI
   )
 }
 
-// ─── 视频播放 ───
-function VideoPreviewView({ video }: { video: VideoInfo }) {
+// ─── 图文预览 ───
+function ImagePostPreviewView({ video }: { video: VideoInfo }) {
   const dismiss = Navigation.useDismiss()
-  const [player, setPlayer] = useState<AVPlayer | null>(null)
-  const [error, setError] = useState("")
-  const isImagePost = video.images.length > 0
-  // 获取屏幕宽度用于分页，兜底 400
-  const pageWidth = ((typeof screen !== 'undefined' && typeof screen?.width === 'number')
-    ? screen.width
-    : 400)
-
-  useEffect(() => {
-    if (isImagePost) return
-    const p = new AVPlayer()
-    if (!video.play_url) { setError("无可播放地址"); return }
-    p.setSource(video.play_url, {
-      headers: { "User-Agent": MOBILE_UA, Referer: "https://www.douyin.com/" }
-    })
-    SharedAudioSession.setCategory('playback', [])
-    SharedAudioSession.setActive(true)
-    p.onReadyToPlay = () => { 
-      setPlayer(p)
-      p.play()
-    }
-    p.onError = () => { setError("播放失败") }
-    return () => {
-      try { p.stop(); p.dispose() } catch {}
-    }
-  }, [])
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   return (
-    <GeometryReader>{({ size: { width, height } }) => (
-      <VStack frame={{ width, height }} background="black">
-        {isImagePost ? (
-          <VStack frame={{ maxWidth: "infinity", maxHeight: "infinity" }} spacing={0}>
-            <ScrollView axes="horizontal" scrollTargetBehavior="paging" frame={{ width, height: height - 56 }}>
-              <HStack spacing={0}>
-                {video.images.map((imgInfo, i) => (
-                  <AnimatedImagePage key={i} imgInfo={imgInfo} pageWidth={width} pageHeight={height - 56} />
-                ))}
-              </HStack>
-            </ScrollView>
-            <HStack frame={{ maxWidth: "infinity" }} padding={{ horizontal: 16, vertical: 8 }} spacing={16}>
-              <Button action={() => shareVideo(video, true)}>
-                <Image systemName="square.and.arrow.up" font="title3" foregroundStyle="white" opacity={0.85} />
+    <GeometryReader>{(proxy) => {
+      const topInset = Math.max(64, proxy.safeAreaInsets.top + 12)
+      const { width, height } = proxy.size
+      return (
+        <ZStack
+          frame={{ width, height }}
+          background="black"
+          ignoresSafeArea
+          statusBarHidden
+        >
+          <ScrollView
+            axes="horizontal"
+            scrollTargetBehavior="paging"
+            scrollIndicator="never"
+            frame={{ width, height }}
+            onScrollTargetVisibilityChange={{
+              idType: "number",
+              threshold: 0.6,
+              onChanged: (ids) => {
+                const index = ids.find((id): id is number => typeof id === "number")
+                if (index !== undefined) setCurrentImageIndex(index)
+              },
+            }}
+          >
+            <HStack spacing={0} scrollTargetLayout>
+              {video.images.map((imgInfo, index) => (
+                <AnimatedImagePage key={index} imgInfo={imgInfo} pageWidth={width} pageHeight={height} />
+              ))}
+            </HStack>
+          </ScrollView>
+          <VStack
+            frame={{ maxWidth: "infinity", maxHeight: "infinity" }}
+            padding={{ top: topInset, bottom: 24, horizontal: 16 }}
+            spacing={0}
+          >
+            <HStack frame={{ maxWidth: "infinity" }}>
+              <ZStack frame={{ width: 80, height: 72 }} onTapGesture={dismiss}>
+                <Rectangle fill="rgba(0,0,0,0.001)" frame={{ width: 80, height: 72 }} />
+                <Image systemName="xmark.circle.fill" font="title" foregroundStyle="white" opacity={0.88} />
+              </ZStack>
+              <Spacer />
+            </HStack>
+            <Spacer />
+            <HStack frame={{ maxWidth: "infinity" }}>
+              <Button action={() => shareVideo(video, true, currentImageIndex)}>
+                <Image systemName="square.and.arrow.up" font="title3" foregroundStyle="white" opacity={0.9} />
               </Button>
               <Spacer />
-              <Button action={dismiss}>
-                <Image systemName="xmark.circle.fill" font="title" foregroundStyle="white" opacity={0.8} />
-              </Button>
             </HStack>
           </VStack>
-        ) : player ? (
-          <VideoPlayer
-            player={player}
-            overlay={
-              <VStack frame={{ maxWidth: "infinity", maxHeight: "infinity", alignment: "bottom" }} padding={{ horizontal: 16, bottom: 16 }}>
-                <HStack frame={{ maxWidth: "infinity" }} spacing={16}>
-                  <Button action={() => shareVideo(video, false)}>
-                    <Image systemName="square.and.arrow.up" font="title3" foregroundStyle="white" opacity={0.85} />
-                  </Button>
-                  <Spacer />
-                  <Button action={() => { try { player.stop(); player.dispose() } catch (_) {} dismiss() }}>
-                    <Image systemName="xmark.circle.fill" font="title" foregroundStyle="white" opacity={0.8} />
-                  </Button>
-                </HStack>
-              </VStack>
-            }
-          />
-        ) : error ? (
-          <VStack frame={{ maxWidth: "infinity", maxHeight: "infinity" }} alignment="center" spacing={12}>
-            <Image systemName="exclamationmark.triangle.fill" font="largeTitle" foregroundStyle="white" opacity={0.6} />
-            <Text foregroundStyle="white" opacity={0.6}>{error}</Text>
-            <Button title="关闭" action={() => { dismiss() }} />
-          </VStack>
-        ) : (
-          <VStack frame={{ maxWidth: "infinity", maxHeight: "infinity" }} alignment="center">
-            {video.cover ? (
-              <Image imageUrl={video.cover} resizable aspectRatio={{ value: null, contentMode: 'fit' }} frame={{ maxWidth: "infinity", maxHeight: "infinity" }} opacity={0.3} />
-            ) : null}
-            <VStack frame={{ maxWidth: "infinity", maxHeight: "infinity" }} alignment="center">
-              <ProgressView foregroundStyle="white" />
-            </VStack>
-          </VStack>
-        )}
-      </VStack>
-    )}</GeometryReader>
+        </ZStack>
+      )
+    }}</GeometryReader>
   )
 }
 
-// ─── 打开视频（防双击） ───
+// ─── BBplayer 同款双播放器手势流 ───
+type FeedPlaybackPhase = "loading" | "playing" | "error"
+type FeedPlayerSlot = 0 | 1
+type FeedPlayerPair = [AVPlayer, AVPlayer]
+
+function makeFeedPlayerPair(): FeedPlayerPair {
+  const pair: FeedPlayerPair = [new AVPlayer(), new AVPlayer()]
+  for (const player of pair) {
+    player.volume = 1
+    player.defaultRate = 1
+    player.numberOfLoops = -1
+  }
+  return pair
+}
+
+function releaseFeedPlayerPair(pair: FeedPlayerPair): void {
+  for (const player of pair) {
+    try { player.stop(); player.dispose() } catch {}
+  }
+}
+
+function VideoSwipeFeedView({ videos, initialIndex }: { videos: VideoInfo[]; initialIndex: number }) {
+  const dismiss = Navigation.useDismiss()
+  const safeInitialIndex = Math.max(0, Math.min(initialIndex, videos.length - 1))
+  const initialPlayers = useMemo(() => makeFeedPlayerPair(), [])
+  const playersRef = useRef<FeedPlayerPair>(initialPlayers)
+  const activeSlotRef = useRef<FeedPlayerSlot>(0)
+  const currentIndexRef = useRef(safeInitialIndex)
+  const slotVideoIDs = useRef<[string | undefined, string | undefined]>([undefined, undefined])
+  const slotGenerations = useRef<[number, number]>([0, 0])
+  const mounted = useRef(true)
+  const switching = useRef(false)
+  const closing = useRef(false)
+  const pipStatus = useObservable<PIPStatus>()
+  const [activeSlot, setActiveSlot] = useState<FeedPlayerSlot>(0)
+  const [currentIndex, setCurrentIndex] = useState(safeInitialIndex)
+  const [phase, setPhase] = useState<FeedPlaybackPhase>("loading")
+  const [dragOffset, setDragOffset] = useState(0)
+  const [errorMessage, setErrorMessage] = useState("")
+
+  function playerAt(slot: FeedPlayerSlot): AVPlayer {
+    return playersRef.current[slot]
+  }
+
+  function inactiveSlot(): FeedPlayerSlot {
+    return activeSlotRef.current === 0 ? 1 : 0
+  }
+
+  function isCurrentGeneration(slot: FeedPlayerSlot, generation: number): boolean {
+    return slotGenerations.current[slot] === generation
+  }
+
+  function installPlayerCallbacks(slot: FeedPlayerSlot, generation: number): void {
+    const player = playerAt(slot)
+    player.onReadyToPlay = () => {
+      if (!mounted.current || !isCurrentGeneration(slot, generation) || slot !== activeSlotRef.current) return
+      if (!player.play()) {
+        setErrorMessage("视频已就绪，但自动播放失败")
+        setPhase("error")
+      }
+    }
+    player.onTimeControlStatusChanged = (status) => {
+      if (!mounted.current || !isCurrentGeneration(slot, generation) || slot !== activeSlotRef.current) return
+      if (status === TimeControlStatus.playing) setPhase("playing")
+      else if (status === TimeControlStatus.waitingToPlayAtSpecifiedRate) setPhase("loading")
+    }
+    player.onError = (message) => {
+      if (!mounted.current || !isCurrentGeneration(slot, generation)) return
+      if (slot !== activeSlotRef.current) {
+        slotVideoIDs.current[slot] = undefined
+        player.stop()
+        console.warn(`下一条视频预热失败：${message}`)
+        return
+      }
+      setErrorMessage(message || "视频播放失败")
+      setPhase("error")
+    }
+  }
+
+  function configureSource(slot: FeedPlayerSlot, item: VideoInfo): boolean {
+    if (!item.play_url) return false
+    const player = playerAt(slot)
+    const generation = slotGenerations.current[slot] + 1
+    slotGenerations.current[slot] = generation
+    player.stop()
+    installPlayerCallbacks(slot, generation)
+    const accepted = player.setSource(item.play_url, {
+      headers: { "User-Agent": MOBILE_UA, Referer: "https://www.douyin.com/" }
+    })
+    slotVideoIDs.current[slot] = accepted ? item.aweme_id : undefined
+    return accepted
+  }
+
+  function prewarmNextVideo(): void {
+    const next = videos[currentIndexRef.current + 1]
+    if (!next) return
+    const slot = inactiveSlot()
+    if (slotVideoIDs.current[slot] === next.aweme_id) return
+    if (!configureSource(slot, next)) {
+      console.warn("下一条视频媒体预热失败，将在切换时重试")
+    }
+  }
+
+  function closePlayer(): void {
+    if (closing.current) return
+    closing.current = true
+    playerAt(0).pause()
+    playerAt(1).pause()
+    dismiss()
+  }
+
+  function updateDrag(translationX: number, translationY: number): void {
+    if (switching.current || phase === "error") return
+    if (Math.abs(translationX) > Math.abs(translationY)) {
+      setDragOffset(0)
+      return
+    }
+    const atTop = currentIndexRef.current <= 0
+    const atBottom = currentIndexRef.current >= videos.length - 1
+    const blocked = (translationY > 0 && atTop) || (translationY < 0 && atBottom)
+    setDragOffset(translationY * (blocked ? 0.18 : 1))
+  }
+
+  async function finishDrag(
+    translationX: number,
+    translationY: number,
+    predictedY: number,
+    velocityY: number,
+    pageHeight: number,
+  ): Promise<void> {
+    if (switching.current || phase === "error") {
+      setDragOffset(0)
+      return
+    }
+
+    const vertical = Math.abs(translationY) > Math.abs(translationX)
+    const projected = Math.abs(predictedY) > Math.abs(translationY) ? predictedY : translationY
+    const threshold = Math.min(110, Math.max(1, pageHeight) * 0.18)
+    const enoughDistance = Math.abs(translationY) >= threshold
+    const enoughMomentum = Math.abs(velocityY) >= 650 && Math.abs(projected) >= 70
+    const direction = vertical && (enoughDistance || enoughMomentum)
+      ? (projected < 0 ? 1 : projected > 0 ? -1 : 0)
+      : 0
+    const targetIndex = currentIndexRef.current + direction
+
+    if (direction === 0 || targetIndex < 0 || targetIndex >= videos.length) {
+      await withAnimation(Animation.interactiveSpring({ response: 0.28, dampingFraction: 0.86 }), () => {
+        setDragOffset(0)
+      })
+      return
+    }
+
+    switching.current = true
+    const oldIndex = currentIndexRef.current
+    const oldSlot = activeSlotRef.current
+    const targetSlot = inactiveSlot()
+    const target = videos[targetIndex]
+    try {
+      setErrorMessage("")
+      const outgoingDirection = direction > 0 ? -1 : 1
+      await withAnimation(Animation.easeOut(0.2), () => {
+        setDragOffset(outgoingDirection * pageHeight)
+      })
+      if (!mounted.current) return
+      if (slotVideoIDs.current[targetSlot] !== target.aweme_id && !configureSource(targetSlot, target)) {
+        throw new Error("播放器无法打开该视频地址")
+      }
+
+      playerAt(oldSlot).pause()
+      activeSlotRef.current = targetSlot
+      currentIndexRef.current = targetIndex
+      setActiveSlot(targetSlot)
+      setCurrentIndex(targetIndex)
+      setPhase("loading")
+      addToHistory(target)
+
+      // 预热播放器的 ready 回调可能已经触发；切换槽位后必须主动 play。
+      playerAt(targetSlot).play()
+      setDragOffset(-outgoingDirection * pageHeight)
+      await withAnimation(Animation.spring({ duration: 0.3, bounce: 0.05 }), () => {
+        setDragOffset(0)
+      })
+      prewarmNextVideo()
+    } catch (error) {
+      currentIndexRef.current = oldIndex
+      activeSlotRef.current = oldSlot
+      setCurrentIndex(oldIndex)
+      setActiveSlot(oldSlot)
+      setDragOffset(0)
+      setErrorMessage(error instanceof Error ? error.message : "切换视频失败")
+      setPhase("error")
+      playerAt(oldSlot).play()
+    } finally {
+      switching.current = false
+    }
+  }
+
+  useEffect(() => {
+    mounted.current = true
+    SharedAudioSession.setCategory("playback", [])
+      .then(() => SharedAudioSession.setActive(true))
+      .catch((error) => console.warn(`音频会话配置失败：${String(error)}`))
+
+    const initial = videos[safeInitialIndex]
+    addToHistory(initial)
+    if (!configureSource(0, initial)) {
+      setErrorMessage("无法打开当前视频地址")
+      setPhase("error")
+    }
+    prewarmNextVideo()
+
+    return () => {
+      mounted.current = false
+      releaseFeedPlayerPair(playersRef.current)
+      SharedAudioSession.setActive(false, ["notifyOthersOnDeactivation"]).catch(() => {})
+    }
+  }, [])
+
+  const current = videos[currentIndex]
+  const feedback = phase === "error" ? (
+    <VStack spacing={12} padding={24} frame={{ maxWidth: 320 }} background="black" opacity={0.86} clipShape={{ type: "rect", cornerRadius: 8 }}>
+      <Image systemName="exclamationmark.triangle.fill" font="largeTitle" foregroundStyle="white" />
+      <Text font="subheadline" foregroundStyle="white" multilineTextAlignment="center">{errorMessage}</Text>
+      <Button title="关闭" action={closePlayer} />
+    </VStack>
+  ) : phase === "loading" ? (
+    <ProgressView foregroundStyle="white" />
+  ) : undefined
+
+  return (
+    <GeometryReader>{(proxy) => {
+      const topInset = Math.max(64, proxy.safeAreaInsets.top + 12)
+      return (
+      <ZStack
+        frame={{ maxWidth: "infinity", maxHeight: "infinity" }}
+        background="black"
+        ignoresSafeArea
+        statusBarHidden
+        persistentSystemOverlays="hidden"
+      >
+        <ZStack
+          frame={{ maxWidth: "infinity", maxHeight: "infinity" }}
+          offset={{ x: 0, y: dragOffset }}
+        >
+          <AVPlayerView
+            key={`feed-player-${activeSlot}-${current.aweme_id}`}
+            player={playerAt(activeSlot)}
+            pipStatus={pipStatus}
+            allowsPictureInPicturePlayback={false}
+            updatesNowPlayingInfoCenter={false}
+            videoGravity="resizeAspect"
+            frame={{ maxWidth: "infinity", maxHeight: "infinity" }}
+          />
+          <Rectangle
+            fill="clear"
+            contentShape="rect"
+            frame={{ width: proxy.size.width, height: proxy.size.height }}
+            onDragGesture={{
+              minDistance: 8,
+              coordinateSpace: "global",
+              onChanged: (details) => updateDrag(details.translation.width, details.translation.height),
+              onEnded: (details) => {
+                void finishDrag(
+                  details.translation.width,
+                  details.translation.height,
+                  details.predictedEndTranslation.height,
+                  details.velocity.height,
+                  proxy.size.height,
+                )
+              },
+            }}
+          />
+          {feedback}
+        </ZStack>
+
+        <VStack
+          frame={{ maxWidth: "infinity", maxHeight: "infinity" }}
+          padding={{ top: topInset, bottom: 24, horizontal: 16 }}
+          spacing={0}
+        >
+          <HStack frame={{ maxWidth: "infinity" }}>
+            <ZStack frame={{ width: 80, height: 72 }} onTapGesture={closePlayer}>
+              <Rectangle fill="rgba(0,0,0,0.001)" frame={{ width: 80, height: 72 }} />
+              <Image systemName="xmark.circle.fill" font="title" foregroundStyle="white" opacity={0.88} />
+            </ZStack>
+            <Spacer />
+            <Text font="caption" foregroundStyle="white" opacity={0.75}>{currentIndex + 1} / {videos.length}</Text>
+          </HStack>
+          <Spacer />
+          <VStack frame={{ maxWidth: "infinity" }} alignment="leading" spacing={10}>
+            {current.desc ? <Text font="subheadline" foregroundStyle="white" lineLimit={2}>{current.desc}</Text> : null}
+            <HStack frame={{ maxWidth: "infinity" }}>
+              <Button action={() => shareVideo(current, false)}>
+                <Image systemName="square.and.arrow.up" font="title3" foregroundStyle="white" opacity={0.9} />
+              </Button>
+              <Spacer />
+            </HStack>
+          </VStack>
+        </VStack>
+      </ZStack>
+      )
+    }}</GeometryReader>
+  )
+}
+
+// ─── 打开作品（防双击） ───
 let _openingVideo = false
-async function openVideo(video: VideoInfo, _idx?: number) {
-  if (_openingVideo) return
+async function openVideo(items: VideoInfo[], initialIndex: number) {
+  if (_openingVideo || items.length === 0) return
+  const selected = items[Math.max(0, Math.min(initialIndex, items.length - 1))]
   _openingVideo = true
   try {
-    addToHistory(video)
-    await Navigation.present(<VideoPreviewView video={video} />)
+    if (selected.images.length > 0) {
+      addToHistory(selected)
+      await Navigation.present({
+        element: <ImagePostPreviewView video={selected} />,
+        modalPresentationStyle: 'overFullScreen',
+      })
+      return
+    }
+
+    const videos = items.filter((item) => item.images.length === 0)
+    const startIndex = Math.max(0, videos.findIndex((item) => item.aweme_id === selected.aweme_id))
+    await Navigation.present({
+      element: <VideoSwipeFeedView videos={videos} initialIndex={startIndex} />,
+      modalPresentationStyle: 'overFullScreen',
+    })
   } finally {
     _openingVideo = false
   }
@@ -650,6 +942,11 @@ function addToHistory(video: VideoInfo) {
 function loadSavedUsers(): SavedUser[] {
   try { const raw = Storage.get<string>(KEY_SAVED_USERS); if (!raw) return []; return Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [] }
   catch { return [] }
+}
+function loadCurrentSavedUser(): SavedUser | null {
+  const uid = loadSecUid()
+  if (!uid) return null
+  return loadSavedUsers().find((u) => u.id === uid) || null
 }
 function saveUser(user: SavedUser) {
   const users = loadSavedUsers(); const idx = users.findIndex((u) => u.id === user.id)
@@ -1415,7 +1712,7 @@ async function syncDouyinWebLogin(): Promise<LoginResult> {
 }
 
 // ─── 主页 ───
-function HomeView({ dismissApp }: { dismissApp: () => void }) {
+function HomeView({ dismissApp, isActive }: { dismissApp: () => void; isActive: boolean }) {
   const [secUid, setSecUid] = useState(() => loadSecUid())
   const [videos, setVideos] = useState<VideoInfo[]>([])
   const [loading, setLoading] = useState(false)
@@ -1434,7 +1731,10 @@ function HomeView({ dismissApp }: { dismissApp: () => void }) {
     try {
       const result = await fetchUserPosts(targetUid, c)
       if (reset) setVideos(result.videos)
-      else setVideos((prev) => [...prev, ...result.videos])
+      else setVideos((prev) => {
+        const existingIds = new Set(prev.map((video) => video.aweme_id))
+        return [...prev, ...result.videos.filter((video) => !existingIds.has(video.aweme_id))]
+      })
       setCursor(result.maxCursor)
       setHasMore(result.hasMore)
       if (result.videos.length > 0) {
@@ -1459,7 +1759,12 @@ function HomeView({ dismissApp }: { dismissApp: () => void }) {
     else setLoadingMore(false)
   }
 
-  useEffect(() => { doLoadVideos(true) }, [])
+  useEffect(() => {
+    if (!isActive) return
+    const activeUid = loadSecUid()
+    if (activeUid !== secUid) setSecUid(activeUid)
+    doLoadVideos(true, activeUid)
+  }, [isActive])
 
   function handleSwitchUser(uid: string) {
     setSecUid(uid)
@@ -1540,7 +1845,7 @@ function HomeView({ dismissApp }: { dismissApp: () => void }) {
                 { size: { type: "flexible", min: 100, max: 200 }, spacing: 6 },
               ]} spacing={6}>
                 {videos.map((v, idx) => (
-                    <VStack key={v.aweme_id} spacing={3} onTapGesture={() => openVideo(v, idx)}>
+                    <VStack key={v.aweme_id} spacing={3} onTapGesture={() => openVideo(videos, idx)}>
                       <VStack frame={{ maxWidth: "infinity", height: 200 }} background="systemGray5" clipShape={{ type: "rect", cornerRadius: 8 }}>
                         {v.cover ? <Image imageUrl={v.cover} resizable aspectRatio={{ value: 9/16, contentMode: 'fit' }} frame={{ maxWidth: "infinity", height: 200 }} overlay={{ alignment: "bottom", content: (
                           <VStack padding={3} spacing={3}>
@@ -1599,7 +1904,7 @@ function HomeView({ dismissApp }: { dismissApp: () => void }) {
 }
 
 function HistoryItemCard({ item, idx, history, setHistory }: { item: HistoryItem; idx: number; history: HistoryItem[]; setHistory: (h: HistoryItem[]) => void }) {
-  const onPlay = () => openVideo(item, idx)
+  const onPlay = () => openVideo(history, idx)
   const onDelete = () => { const u = history.filter((h) => h.aweme_id !== item.aweme_id); saveHistory(u); setHistory(u) }
   return (
     <VStack spacing={3}>
@@ -1621,12 +1926,12 @@ function HistoryItemCard({ item, idx, history, setHistory }: { item: HistoryItem
 }
 
 // ─── 历史 ───
-function HistoryView({ dismissApp }: { dismissApp: () => void }) {
+function HistoryView({ dismissApp, isActive }: { dismissApp: () => void; isActive: boolean }) {
   const [history, setHistory] = useState<HistoryItem[]>(() => loadHistory())
   useEffect(() => {
-    const h = loadHistory()
-    if (JSON.stringify(h) !== JSON.stringify(history)) setHistory(h)
-  }, [])
+    if (!isActive) return
+    setHistory(loadHistory())
+  }, [isActive])
 
   return (
     <NavigationStack>
@@ -1668,7 +1973,7 @@ function HistoryView({ dismissApp }: { dismissApp: () => void }) {
 }
 
 // ─── 设置 ───
-function SettingsView() {
+function SettingsView({ isActive }: { isActive: boolean }) {
   const [inputValue, setInputValue] = useState("")
   const [cookieValue, setCookieValue] = useState(() => {
     const saved = Storage.get<string>(KEY_COOKIE) || ""
@@ -1685,7 +1990,7 @@ function SettingsView() {
   const [loginBusy, setLoginBusy] = useState(false)
   const [syncingLogin, setSyncingLogin] = useState(false)
   const [showManualCookie, setShowManualCookie] = useState(false)
-  const [savedInfo, setSavedInfo] = useState<SavedUser | null>(null)
+  const [savedInfo, setSavedInfo] = useState<SavedUser | null>(() => loadCurrentSavedUser())
   const [savedUsers, setSavedUsers] = useState<SavedUser[]>(() => loadSavedUsers())
   const [currentUid, setCurrentUid] = useState(() => loadSecUid())
 
@@ -1719,16 +2024,36 @@ function SettingsView() {
           const newUsers = loadSavedUsers()
               setSavedUsers(newUsers)
               const updated = newUsers.find((u) => u.id === uid)
-              if (updated) setSavedInfo(updated)
+              if (updated && loadSecUid() === uid) setSavedInfo(updated)
             }
           }).catch(() => {})
         }
       }
-      else setSavedInfo({ id: uid, nickname: "", avatar: "", savedAt: Date.now() })
+      else {
+        const placeholder: SavedUser = { id: uid, nickname: "", avatar: "", savedAt: Date.now() }
+        setSavedInfo(placeholder)
+        fetchUserProfile(uid).then((profile) => {
+          if (!profile || loadSecUid() !== uid) return
+          const user: SavedUser = {
+            ...placeholder,
+            ...profile,
+            id: uid,
+            savedAt: placeholder.savedAt,
+            nickname: profile.nickname || "",
+            avatar: profile.avatar || "",
+          }
+          saveUser(user)
+          const newUsers = loadSavedUsers()
+          setSavedUsers(newUsers)
+          if (loadSecUid() === uid) setSavedInfo(newUsers.find((u) => u.id === uid) || user)
+        }).catch(() => {})
+      }
     } else { setSavedInfo(null) }
   }
 
-  useEffect(() => { refreshSavedUsers() }, [])
+  useEffect(() => {
+    if (isActive) refreshSavedUsers()
+  }, [isActive])
 
   // 检查 Cookie 状态
   useEffect(() => {
@@ -2064,28 +2389,32 @@ function SettingsView() {
 // ─── 主入口 ───
 function App() {
   const dismiss = Navigation.useDismiss()
+  const [tabIndex, setTabIndex] = useState(0)
 
   return (
-    <TabView>
-      <Tab title="作品" systemImage="rectangle.grid.2x2">
-        <HomeView dismissApp={() => dismiss()} />
+    <TabView tabIndex={tabIndex} onTabIndexChanged={setTabIndex}>
+      <Tab title="作品" systemImage="rectangle.grid.2x2" value={0}>
+        <HomeView dismissApp={() => dismiss()} isActive={tabIndex === 0} />
       </Tab>
-      <Tab title="历史" systemImage="clock">
-        <HistoryView dismissApp={() => dismiss()} />
+      <Tab title="历史" systemImage="clock" value={1}>
+        <HistoryView dismissApp={() => dismiss()} isActive={tabIndex === 1} />
       </Tab>
-      <Tab title="设置" systemImage="gear">
-        <SettingsView />
+      <Tab title="设置" systemImage="gear" value={2}>
+        <SettingsView isActive={tabIndex === 2} />
       </Tab>
     </TabView>
   )
 }
 
 async function run() {
-  await Navigation.present({
-    element: <App />,
-    modalPresentationStyle: 'overFullScreen',
-  })
-  Script.exit()
+  try {
+    await Navigation.present({
+      element: <App />,
+      modalPresentationStyle: 'overFullScreen',
+    })
+  } finally {
+    Script.exit()
+  }
 }
 
 run()
