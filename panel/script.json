@@ -1,42 +1,36 @@
 {
-  "contributors" : [
-
-  ],
-  "runInApp" : false,
-  "icon" : "square.2.layers.3d.fill",
-  "color" : "rgba(252, 124, 93,1)",
-  "entry" : "index.tsx",
-  "description" : null,
-  "iconImage" : null,
-  "version" : "1.0.0",
-  "author" : null,
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/panel.scripting"
+  "localizedDescriptions": {
+    "ru": "",
+    "zh": "",
+    "de": "",
+    "it": "",
+    "pt": "",
+    "ja": "",
+    "es": "",
+    "fr": "",
+    "en": ""
   },
-  "localizedDescriptions" : {
-    "es" : "",
-    "it" : "",
-    "fr" : "",
-    "en" : "",
-    "ru" : "",
-    "pt" : "",
-    "zh" : "",
-    "ja" : "",
-    "de" : ""
+  "permissions": null,
+  "version": "1.0.1",
+  "color": "rgba(252, 124, 93,1)",
+  "localizedNames": {
+    "ja": "",
+    "it": "",
+    "de": "",
+    "ru": "",
+    "es": "",
+    "pt": "",
+    "zh": "",
+    "en": "",
+    "fr": ""
   },
-  "localizedNames" : {
-    "es" : "",
-    "ru" : "",
-    "fr" : "",
-    "it" : "",
-    "zh" : "",
-    "de" : "",
-    "pt" : "",
-    "ja" : "",
-    "en" : ""
-  },
-  "intentInputTypes" : [
-
-  ],
-  "name" : "panel"
+  "icon": "square.2.layers.3d.fill",
+  "contributors": [],
+  "intentInputTypes": [],
+  "name": "panel",
+  "author": null,
+  "iconImage": null,
+  "description": null,
+  "runInApp": false,
+  "entry": "index.tsx"
 }
