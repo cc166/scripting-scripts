@@ -1,47 +1,40 @@
 {
-  "name" : "镜花水月",
-  "contributors" : [
-
-  ],
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E9%95%9C%E8%8A%B1%E6%B0%B4%E6%9C%88.scripting"
+  "permissions": null,
+  "name": "镜花水月",
+  "color": "rgba(28, 140, 255,1)",
+  "entry": "index.tsx",
+  "version": "1.0.2",
+  "localizedDescriptions": {
+    "ja": "",
+    "en": "",
+    "zh": "",
+    "fr": "",
+    "pt": "",
+    "it": "",
+    "de": "",
+    "ru": "",
+    "es": ""
   },
-  "description" : "镜花水月",
-  "localizedDescriptions" : {
-    "it" : "",
-    "ru" : "",
-    "pt" : "",
-    "es" : "",
-    "fr" : "",
-    "de" : "",
-    "ja" : "",
-    "en" : "",
-    "zh" : ""
+  "icon": "livephoto",
+  "iconImage": "",
+  "localizedNames": {
+    "de": "",
+    "en": "",
+    "ru": "",
+    "it": "",
+    "zh": "",
+    "es": "",
+    "ja": "",
+    "pt": "",
+    "fr": ""
   },
-  "icon" : "livephoto",
-  "permissions" : null,
-  "runInApp" : false,
-  "color" : "rgba(28, 140, 255,1)",
-  "author" : {
-    "email" : "7452323@gmail.com",
-    "name" : "7452323",
-    "homepage" : "https:\/\/github.com\/7452323"
+  "intentInputTypes": [],
+  "author": {
+    "homepage": "https://github.com/7452323",
+    "name": "7452323",
+    "email": "7452323@gmail.com"
   },
-  "version" : "1.0.1",
-  "iconImage" : "",
-  "entry" : "index.tsx",
-  "localizedNames" : {
-    "en" : "",
-    "de" : "",
-    "ja" : "",
-    "zh" : "",
-    "fr" : "",
-    "ru" : "",
-    "es" : "",
-    "it" : "",
-    "pt" : ""
-  },
-  "intentInputTypes" : [
-
-  ]
+  "description": "镜花水月",
+  "runInApp": false,
+  "contributors": []
 }
