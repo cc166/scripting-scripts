@@ -9,7 +9,9 @@ export interface PickupInfo {
 const BRACKET_RE = /【([^】\d]{2,10})】/
 const LOCATION_RE = /(?:到达|至|放|在|取件地[:：]|地址[:：])\s*([^，,。!！\n\r\]】]{2,30}?(?:店|驿站|超市|服务部|前台|门卫|代收点|便利店|服务站|仓|柜|厅|室|中心|报亭|花园|小区|楼|园|广场))/i
 const GENERIC_RE = /(菜鸟|蜂巢|丰巢|兔喜|兔喜生活|极兔|顺丰|京东|韵达|中通|圆通|申通|邮政|EMS|妈妈驿站|欢猫驿站|驿站|日日顺|德邦)/i
-const CODE_TOKEN = "[A-Z0-9]{1,12}(?:-[A-Z0-9]{1,12}){0,3}"
+const DASH_RE = /[‐‑‒–—―−﹘﹣－]/g
+const INVISIBLE_RE = /[\u00AD\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g
+const CODE_TOKEN = "[A-Z0-9]{1,12}(?:\\s*-\\s*[A-Z0-9]{1,12}){0,3}"
 const CODE_AFTER_KEYWORD_RE = new RegExp(
   `(?:取件码|取货码|验证码|提货码|取件|取货|请凭|凭)\\s*[:：]?\\s*(${CODE_TOKEN})`,
   "gi"
@@ -25,8 +27,15 @@ interface CodeMatch {
   length: number
 }
 
+function normalizeInputText(value: string): string {
+  return value
+    .normalize("NFKC")
+    .replace(DASH_RE, "-")
+    .replace(INVISIBLE_RE, "")
+}
+
 function normalizeCode(value: string): string | null {
-  const code = value.toUpperCase().replace(/^[,，.。:：;；]+|[,，.。:：;；]+$/g, "")
+  const code = value.toUpperCase().replace(/\s+/g, "").replace(/^[,，.。:：;；]+|[,，.。:：;；]+$/g, "")
   const compactLength = code.replace(/-/g, "").length
   if (compactLength < 3 || !/\d/.test(code)) return null
   return code
@@ -65,10 +74,11 @@ function getSnippet(text: string, matchIndex: number): string {
 export function extractPickupFromText(text: string, date?: Date): PickupInfo[] {
   if (!text) return []
 
-  return findCodes(text).map(match => {
+  const normalizedText = normalizeInputText(text)
+  return findCodes(normalizedText).map(match => {
     const contextStart = Math.max(0, match.index - 100)
-    const contextEnd = Math.min(text.length, match.index + match.length + 100)
-    const context = text.slice(contextStart, contextEnd)
+    const contextEnd = Math.min(normalizedText.length, match.index + match.length + 100)
+    const context = normalizedText.slice(contextStart, contextEnd)
     const bracketName = context.match(BRACKET_RE)?.[1] ?? null
     const locationMatch = context.match(LOCATION_RE)
     const locationName = locationMatch?.[1]?.replace(/^(?:在|位于|地址|:)/, "") ?? null
@@ -77,7 +87,7 @@ export function extractPickupFromText(text: string, date?: Date): PickupInfo[] {
     return {
       courier: locationName || bracketName || genericName,
       code: match.code,
-      snippet: getSnippet(text, match.index),
+      snippet: getSnippet(normalizedText, match.index),
       date: date ? date.toISOString() : null,
     }
   })
