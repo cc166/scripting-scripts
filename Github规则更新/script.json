@@ -1,47 +1,48 @@
 {
+  "runInApp" : false,
+  "name" : "Github规则更新",
+  "contributors" : [
+
+  ],
+  "permissions" : null,
+  "intentInputTypes" : [
+    "Text",
+    "URLs"
+  ],
+  "author" : {
+    "email" : null,
+    "homepage" : null,
+    "name" : "Lucasss1916"
+  },
+  "description" : "直接在已有规则文件基础上，添加新规则",
+  "version" : "1.1.0",
+  "entry" : "index.tsx",
+  "iconImage" : "",
+  "remoteResource" : {
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Github%E8%A7%84%E5%88%99%E6%9B%B4%E6%96%B0.scripting"
+  },
   "localizedDescriptions" : {
-    "fr" : "",
-    "ja" : "",
     "ru" : "",
     "de" : "",
     "en" : "",
     "es" : "",
     "pt" : "",
-    "zh" : "",
-    "it" : ""
-  },
-  "entry" : "index.tsx",
-  "author" : {
-    "email" : null,
-    "name" : "Lucasss1916",
-    "homepage" : null
-  },
-  "version" : "1.0.1",
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/Github%E8%A7%84%E5%88%99%E6%9B%B4%E6%96%B0.scripting"
-  },
-  "description" : "直接在已有规则文件基础上，添加新规则",
-  "iconImage" : "",
-  "contributors" : [
-
-  ],
-  "intentInputTypes" : [
-
-  ],
-  "name" : "Github规则更新",
-  "localizedNames" : {
-    "fr" : "",
-    "zh" : "",
-    "es" : "",
-    "de" : "",
-    "en" : "",
     "ja" : "",
     "it" : "",
-    "ru" : "",
-    "pt" : ""
+    "fr" : "",
+    "zh" : ""
   },
-  "icon" : "network",
   "color" : "rgba(0, 0, 0, 1.00)",
-  "permissions" : null,
-  "runInApp" : false
+  "localizedNames" : {
+    "ru" : "",
+    "fr" : "",
+    "ja" : "",
+    "es" : "",
+    "pt" : "",
+    "en" : "",
+    "zh" : "",
+    "it" : "",
+    "de" : ""
+  },
+  "icon" : "network"
 }
