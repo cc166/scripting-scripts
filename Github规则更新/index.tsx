@@ -12,6 +12,8 @@ import {
   Spacer,
   Image,
   EditButton,
+  Editor,
+  ProgressView,
   useObservable,
   useState,
   useEffect,
@@ -23,16 +25,22 @@ import {
   Widget,
   fetch,
 } from 'scripting'
-// 后台追加目标的读写与 intent.tsx 共用同一份存储键
 import { loadIntentTarget, saveIntentTarget } from './services/rule_append'
 
 declare const Storage: {
   get<T>(key: string): T | null
   set<T>(key: string, value: T): boolean
+  remove(key: string): void
 }
 declare const Data: {
   fromBase64String(base64: string): { toRawString(): string | null } | null
   fromRawString(str: string, encoding: string): { toBase64String(): string } | null
+}
+declare const Dialog: {
+  alert(options: { title: string; message: string }): Promise<void>
+}
+declare const Pasteboard: {
+  setString(string: string | null): Promise<void>
 }
 
 // =============== 类型与常量 ===============
@@ -43,6 +51,7 @@ const ALL_TYPES = '__ALL__'
 
 interface Rule {
   id: string
+  prefix: string     // 行首前缀；YAML 列表项会保留 "  - " 之类的缩进
   type: string       // 如 DOMAIN-SUFFIX；RAW_TYPE 表示原样保留行
   value: string      // 如 github.io；RAW_TYPE 时即整行原文
   trailing: string   // 紧跟值的剩余部分，如 ',Proxy,no-resolve'（含前导逗号）
@@ -53,6 +62,7 @@ interface Rule {
 interface ParsedFile {
   preamble: string[]   // 首条规则之前的注释/空行（保留原样）
   rules: Rule[]
+  defaultRulePrefix: string
   trailingNewline: boolean
 }
 
@@ -61,6 +71,7 @@ interface FileItem {
   name: string
   path: string
   sha: string
+  rawUrl?: string
 }
 
 interface BrowserItem {
@@ -70,6 +81,7 @@ interface BrowserItem {
   type: 'file' | 'dir'
   sha: string
   size: number                    // 字节，仅 file 有意义
+  rawUrl?: string                  // GitHub Contents API 返回的 download_url
 }
 
 interface Config {
@@ -82,6 +94,7 @@ interface Config {
 
 const CONFIG_KEY = 'github_config'
 const LAST_PATH_KEY = 'github_last_path'   // 记忆上次浏览到的目录
+const DEFAULT_BRANCH_CACHE_KEY = 'github_default_branch_cache'
 
 // =============== Path 工具 ===============
 
@@ -97,14 +110,108 @@ function parentPath(p: string): string {
   return segs.join('/')
 }
 
+function fileExt(name: string): string {
+  const i = name.lastIndexOf('.')
+  return i >= 0 ? name.slice(i + 1) : 'txt'
+}
+
+function rawFileUrl(cfg: Config, path: string): string {
+  return `https://raw.githubusercontent.com/${encodeURIComponent(cfg.owner.trim())}/${encodeURIComponent(cfg.repo.trim())}/${encodeURIPath(preferredBranch(cfg))}/${encodeURIPath(path)}`
+}
+
 /** 把 GitHub 错误状态码转成更友好的 Error */
 function friendlyError(status: number, fallback?: string): Error {
-  if (status === 401) return new Error('鉴权失败：token 无效或已过期')
-  if (status === 403) return new Error('权限不足：私有仓库需要 token 包含 repo scope')
-  if (status === 404) return new Error('找不到路径或仓库（私有仓库请检查 token 权限）')
-  if (status === 409) return new Error('远端已变更，请刷新后重试')
-  if (status === 422) return new Error('提交参数有误')
-  return new Error(fallback ?? `请求失败 (${status})`)
+  const suffix = fallback ? `：${fallback}` : ''
+  let message: string
+  if (status === 401) message = `鉴权失败：token 无效、已过期，或 Authorization 格式不被接受${suffix}`
+  else if (status === 403) message = `权限不足或被 GitHub 拒绝：私有仓库需要 token 包含 repo scope；fine-grained token 需要该仓库 Contents: Read/Write 权限${suffix}`
+  else if (status === 404) message = `找不到路径、仓库或分支；私有仓库也可能是 token 没有被授权访问该仓库${suffix}`
+  else if (status === 409) message = `远端已变更，请刷新后重试${suffix}`
+  else if (status === 422) message = `提交参数有误${suffix}`
+  else message = fallback ? `请求失败 (${status})：${fallback}` : `请求失败 (${status})`
+
+  const err = new Error(message) as Error & { status?: number; githubMessage?: string }
+  err.status = status
+  err.githubMessage = fallback
+  return err
+}
+
+function githubHeaders(token: string, extra: Record<string, string> = {}): Record<string, string> {
+  return {
+    // GitHub REST API accepts PAT as Bearer; trim 避免复制 token 时混入空白/换行。
+    Authorization: `Bearer ${token.trim()}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    // Scripting 的 fetch 是 native 实现；显式 UA 可避免 GitHub 拒绝无 UA 请求。
+    'User-Agent': 'Scripting-Github-Rules-Updater',
+    ...extra,
+  }
+}
+
+type GitHubResponse = Awaited<ReturnType<typeof fetch>>
+
+async function githubError(res: GitHubResponse): Promise<Error> {
+  const body = await res.json().catch(() => null)
+  const message = typeof body?.message === 'string' ? body.message : res.statusText
+  return friendlyError(res.status, message)
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  let timer: any
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
+function repoKey(cfg: Config): string {
+  return `${cfg.owner.trim()}/${cfg.repo.trim()}`.toLowerCase()
+}
+
+function repoApiBase(cfg: Config): string {
+  return `https://api.github.com/repos/${encodeURIComponent(cfg.owner.trim())}/${encodeURIComponent(cfg.repo.trim())}`
+}
+
+function getCachedDefaultBranch(cfg: Config): string {
+  const cache = Storage.get<Record<string, string>>(DEFAULT_BRANCH_CACHE_KEY) ?? {}
+  return cache[repoKey(cfg)] ?? ''
+}
+
+function setCachedDefaultBranch(cfg: Config, branch: string) {
+  if (!branch) return
+  const cache = Storage.get<Record<string, string>>(DEFAULT_BRANCH_CACHE_KEY) ?? {}
+  cache[repoKey(cfg)] = branch
+  Storage.set(DEFAULT_BRANCH_CACHE_KEY, cache)
+}
+
+function preferredBranch(cfg: Config): string {
+  return cfg.branch.trim() || getCachedDefaultBranch(cfg) || 'main'
+}
+
+function isMissingBranchError(e: any): boolean {
+  const msg = String(e?.githubMessage ?? e?.message ?? e)
+  return msg.includes('No commit found for the ref')
+}
+
+async function fetchDefaultBranch(cfg: Config): Promise<string> {
+  const res = await ghGet(repoApiBase(cfg), cfg.token)
+  if (!res.ok) throw await githubError(res)
+  const data = await res.json()
+  const branch = String(data.default_branch || '').trim()
+  if (!branch) throw new Error('仓库没有默认分支，可能是空仓库')
+  setCachedDefaultBranch(cfg, branch)
+  return branch
+}
+
+async function useDefaultBranch(cfg: Config): Promise<string> {
+  const branch = await fetchDefaultBranch(cfg)
+  // 旧版脚本默认写死 main；遇到 main 不存在时自动修正为仓库默认分支。
+  if (cfg.branch !== branch) saveConfig({ ...cfg, branch })
+  return branch
 }
 
 /** 文件大小友好显示 */
@@ -128,27 +235,35 @@ function isCommentOrBlank(line: string): boolean {
  * 解析单行规则；非规则（注释/空行/不规范）返回 null。
  * 兼容 Surge / Clash / QuanX 通用 `TYPE,VALUE[,REST]  # comment` 格式。
  */
-function parseRuleLine(raw: string): { type: string; value: string; trailing: string; comment: string } | null {
-  let body = raw
-  let comment = ''
-  // 仅当 # 前面有非空内容才视为行尾注释（避免误吞整行注释）
-  const hashIdx = raw.indexOf('#')
-  if (hashIdx > 0 && /\S/.test(raw.slice(0, hashIdx))) {
-    body = raw.slice(0, hashIdx).trimEnd()
-    comment = raw.slice(hashIdx)
+function parseRuleLine(raw: string): { prefix: string; type: string; value: string; trailing: string; comment: string } | null {
+  const tryParse = (prefix: string, body: string): { prefix: string; type: string; value: string; trailing: string; comment: string } | null => {
+    let content = body
+    let comment = ''
+    const hashIdx = body.indexOf('#')
+    if (hashIdx > 0 && /\S/.test(body.slice(0, hashIdx))) {
+      content = body.slice(0, hashIdx).trimEnd()
+      comment = body.slice(hashIdx)
+    }
+
+    const parts = content.split(',')
+    if (parts.length < 2) return null
+
+    const type = parts[0].trim()
+    const value = parts[1].trim()
+    if (!type || !value) return null
+    // 类型要像 UPPER-CASE 标识符（适配 DOMAIN / DOMAIN-SUFFIX / IP-CIDR / USER-AGENT 等）
+    if (!/^[A-Z][A-Z0-9-]*$/.test(type)) return null
+
+    const trailing = parts.length > 2 ? ',' + parts.slice(2).join(',') : ''
+    return { prefix, type, value, trailing, comment }
   }
 
-  const parts = body.split(',')
-  if (parts.length < 2) return null
+  const plain = tryParse('', raw)
+  if (plain) return plain
 
-  const type = parts[0].trim()
-  const value = parts[1].trim()
-  if (!type || !value) return null
-  // 类型要像 UPPER-CASE 标识符（适配 DOMAIN / DOMAIN-SUFFIX / IP-CIDR / USER-AGENT 等）
-  if (!/^[A-Z][A-Z0-9-]*$/.test(type)) return null
-
-  const trailing = parts.length > 2 ? ',' + parts.slice(2).join(',') : ''
-  return { type, value, trailing, comment }
+  const yamlMatch = raw.match(/^(\s*-\s+)(.*)$/)
+  if (!yamlMatch) return null
+  return tryParse(yamlMatch[1], yamlMatch[2])
 }
 
 function parseFile(content: string): ParsedFile {
@@ -159,6 +274,7 @@ function parseFile(content: string): ParsedFile {
   const preamble: string[] = []
   const rules: Rule[] = []
   let foundFirstRule = false
+  let defaultRulePrefix = ''
 
   for (const line of lines) {
     if (!foundFirstRule) {
@@ -168,6 +284,7 @@ function parseFile(content: string): ParsedFile {
         continue
       }
       foundFirstRule = true
+      defaultRulePrefix = tryParse.prefix
       rules.push({ id: newId(), ...tryParse, status: 'unchanged' })
       continue
     }
@@ -175,7 +292,7 @@ function parseFile(content: string): ParsedFile {
     if (isCommentOrBlank(line)) {
       // 中间的注释/空行用 RAW 占位，保留位置
       rules.push({
-        id: newId(), type: RAW_TYPE, value: line,
+        id: newId(), prefix: '', type: RAW_TYPE, value: line,
         trailing: '', comment: '', status: 'unchanged',
       })
       continue
@@ -187,19 +304,19 @@ function parseFile(content: string): ParsedFile {
     } else {
       // 无法识别的行原样保留
       rules.push({
-        id: newId(), type: RAW_TYPE, value: line,
+        id: newId(), prefix: '', type: RAW_TYPE, value: line,
         trailing: '', comment: '', status: 'unchanged',
       })
     }
   }
 
-  return { preamble, rules, trailingNewline }
+  return { preamble, rules, defaultRulePrefix, trailingNewline }
 }
 
 function formatRule(r: Rule): string {
   if (r.type === RAW_TYPE) return r.value
   const cmt = r.comment ? '  ' + r.comment.trim() : ''
-  return `${r.type},${r.value}${r.trailing}${cmt}`
+  return `${r.prefix}${r.type},${r.value}${r.trailing}${cmt}`
 }
 
 function serializeFile(file: ParsedFile, currentRules: Rule[]): string {
@@ -210,24 +327,17 @@ function serializeFile(file: ParsedFile, currentRules: Rule[]): string {
 
 // =============== GitHub 接口 ===============
 
-async function ghGet(url: string, token: string): Promise<any> {
-  return fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-  })
+async function ghGet(url: string, token: string): Promise<GitHubResponse> {
+  return fetch(url, { headers: githubHeaders(token) })
 }
 
-/** 列目录：返回文件夹 + 文件，文件夹优先，按名字升序 */
-async function fetchFolderContents(cfg: Config, path: string): Promise<BrowserItem[]> {
-  const ref = encodeURIComponent(cfg.branch || 'main')
+async function fetchFolderContentsAtBranch(cfg: Config, path: string, branch: string): Promise<BrowserItem[]> {
+  const ref = encodeURIComponent(branch)
   const url = path
-    ? `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIPath(path)}?ref=${ref}`
-    : `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents?ref=${ref}`
+    ? `${repoApiBase(cfg)}/contents/${encodeURIPath(path)}?ref=${ref}`
+    : `${repoApiBase(cfg)}/contents?ref=${ref}`
   const res = await ghGet(url, cfg.token)
-  if (!res.ok) throw friendlyError(res.status)
+  if (!res.ok) throw await githubError(res)
   const data = await res.json()
   if (!Array.isArray(data)) throw new Error('该路径不是文件夹')
   return data
@@ -238,6 +348,7 @@ async function fetchFolderContents(cfg: Config, path: string): Promise<BrowserIt
       type: it.type === 'dir' ? 'dir' : 'file',
       sha: it.sha,
       size: it.size ?? 0,
+      rawUrl: it.download_url ?? '',
     } as BrowserItem))
     .sort((a, b) => {
       if (a.type !== b.type) return a.type === 'dir' ? -1 : 1
@@ -245,37 +356,65 @@ async function fetchFolderContents(cfg: Config, path: string): Promise<BrowserIt
     })
 }
 
-async function fetchFileContent(
-  cfg: Config, path: string,
+/** 列目录：返回文件夹 + 文件，文件夹优先，按名字升序；分支不存在时自动切默认分支 */
+async function fetchFolderContents(cfg: Config, path: string): Promise<BrowserItem[]> {
+  let branch = preferredBranch(cfg)
+  try {
+    return await fetchFolderContentsAtBranch(cfg, path, branch)
+  } catch (e: any) {
+    if (!isMissingBranchError(e)) throw e
+    branch = await useDefaultBranch(cfg)
+    return await fetchFolderContentsAtBranch({ ...cfg, branch }, path, branch)
+  }
+}
+
+async function fetchFileContentAtBranch(
+  cfg: Config, path: string, branch: string,
 ): Promise<{ content: string; sha: string }> {
-  const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIPath(path)}?ref=${encodeURIComponent(cfg.branch || 'main')}`
+  const url = `${repoApiBase(cfg)}/contents/${encodeURIPath(path)}?ref=${encodeURIComponent(branch)}`
   const res = await ghGet(url, cfg.token)
-  if (!res.ok) throw friendlyError(res.status)
+  if (!res.ok) throw await githubError(res)
   const data = await res.json()
   if (!data.content) throw new Error(data.message || '读取文件失败')
   const decoded = Data.fromBase64String(data.content.replace(/\n/g, ''))
   return { content: decoded?.toRawString() ?? '', sha: data.sha }
 }
 
-async function commitFileContent(
-  cfg: Config, path: string, content: string, sha: string, message: string,
-): Promise<{ ok: boolean; error?: string; newSha?: string }> {
+async function fetchFileContent(
+  cfg: Config, path: string,
+): Promise<{ content: string; sha: string }> {
+  let branch = preferredBranch(cfg)
+  try {
+    return await fetchFileContentAtBranch(cfg, path, branch)
+  } catch (e: any) {
+    if (!isMissingBranchError(e)) throw e
+    branch = await useDefaultBranch(cfg)
+    return await fetchFileContentAtBranch({ ...cfg, branch }, path, branch)
+  }
+}
+
+interface CommitResult {
+  ok: boolean
+  error?: string
+  newSha?: string
+  status?: number
+  githubMessage?: string
+}
+
+async function commitFileContentAtBranch(
+  cfg: Config, path: string, content: string, sha: string, message: string, branch: string,
+): Promise<CommitResult> {
   const data = Data.fromRawString(content, 'utf-8')
   const res = await fetch(
-    `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIPath(path)}`,
+    `${repoApiBase(cfg)}/contents/${encodeURIPath(path)}`,
     {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cfg.token}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        'Content-Type': 'application/json',
-      },
+      headers: githubHeaders(cfg.token, { 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         message,
         content: data?.toBase64String() ?? '',
         sha,
-        branch: cfg.branch || 'main',
+        branch,
       }),
     },
   )
@@ -283,16 +422,27 @@ async function commitFileContent(
     const body = await res.json()
     return { ok: true, newSha: body.content?.sha }
   }
-  const err = await res.json().catch(() => ({}))
-  return { ok: false, error: err.message ?? friendlyError(res.status).message }
+  const err = await githubError(res) as Error & { status?: number; githubMessage?: string }
+  return { ok: false, error: err.message, status: err.status, githubMessage: err.githubMessage }
+}
+
+async function commitFileContent(
+  cfg: Config, path: string, content: string, sha: string, message: string,
+): Promise<CommitResult> {
+  let branch = preferredBranch(cfg)
+  const first = await commitFileContentAtBranch(cfg, path, content, sha, message, branch)
+  if (first.ok || !isMissingBranchError(first)) return first
+
+  branch = await useDefaultBranch(cfg)
+  return await commitFileContentAtBranch({ ...cfg, branch }, path, content, sha, message, branch)
 }
 
 // =============== 配置存储 ===============
 
 function getConfig(): Config {
-  const c = Storage.get<Config>(CONFIG_KEY) ?? { token: '', owner: '', repo: '', path: '', branch: 'main' }
-  // 兼容旧版没有 branch 字段的配置
-  if (!c.branch) c.branch = 'main'
+  const c = Storage.get<Config>(CONFIG_KEY) ?? { token: '', owner: '', repo: '', path: '', branch: '' }
+  // branch 留空表示自动识别仓库默认分支；兼容旧版缺字段配置。
+  if (c.branch === undefined || c.branch === null) c.branch = ''
   return c
 }
 function saveConfig(c: Config) { Storage.set(CONFIG_KEY, c) }
@@ -306,11 +456,48 @@ function ConfigView({ onBack }: { onBack: () => void }) {
   const repo = useObservable(config.repo)
   const path = useObservable(config.path)
   const branch = useObservable(config.branch)
-
-  // 后台追加（分享菜单 / 快捷指令）的目标，intent.tsx 无界面，只能靠这里预先配好
+  const testing = useObservable(false)
+  const testMsg = useObservable('')
   const intentTarget = loadIntentTarget()
   const intentFilePath = useObservable(intentTarget.filePath)
   const intentRuleType = useObservable(intentTarget.ruleType)
+
+  const currentDraft = (): Config => ({
+    token: token.value.trim(),
+    owner: owner.value.trim(),
+    repo: repo.value.trim(),
+    path: path.value.trim(),
+    branch: branch.value.trim(),
+  })
+
+  const saveDraft = () => {
+    saveConfig(currentDraft())
+  }
+
+  const testConnection = async () => {
+    const draft = currentDraft()
+    if (!draft.token || !draft.owner || !draft.repo) {
+      testMsg.setValue('请先填写 Token、用户名、仓库名')
+      return
+    }
+    testing.setValue(true)
+    testMsg.setValue('检测中…')
+    try {
+      const defaultBranch = await fetchDefaultBranch(draft)
+      const requestedBranch = draft.branch || defaultBranch
+      await fetchFolderContents({ ...draft, branch: requestedBranch }, draft.path)
+      const saved = getConfig()
+      const finalBranch = repoKey(saved) === repoKey(draft)
+        ? (saved.branch || requestedBranch)
+        : requestedBranch
+      branch.setValue(finalBranch)
+      saveConfig({ ...draft, branch: finalBranch })
+      testMsg.setValue(`连接成功，当前分支：${finalBranch}；默认分支：${defaultBranch}`)
+    } catch (e: any) {
+      testMsg.setValue(e.message ?? '检测失败')
+    }
+    testing.setValue(false)
+  }
 
   return (
     <List
@@ -319,32 +506,41 @@ function ConfigView({ onBack }: { onBack: () => void }) {
     >
       <Section
         header={<Text>GitHub 配置</Text>}
-        footer={<Text>私有仓库需要 token 包含 repo scope（classic）或对该仓库的 Read & Write 权限（fine-grained）</Text>}
+        footer={<Text>私有仓库需要 token 包含 repo scope（classic）或对该仓库的 Contents Read/Write 权限（fine-grained）。分支留空会自动识别仓库默认分支。</Text>}
       >
         <TextField title="Token" value={token} prompt="GitHub Token" />
         <TextField title="用户名" value={owner} prompt="GitHub 用户名" />
         <TextField title="仓库名" value={repo} prompt="仓库名称" />
         <TextField title="起始路径" value={path} prompt="留空则从仓库根目录开始" />
-        <TextField title="分支" value={branch} prompt="默认 main" />
+        <TextField title="分支" value={branch} prompt="留空自动识别，例如 main/master" />
       </Section>
+
       <Section
         header={<Text>后台追加</Text>}
-        footer={<Text>从分享菜单或快捷指令「Run Script」传入文本 / 链接时，自动追加到这里指定的文件（无界面，故须预先配好）。链接会自动取主机名；已存在的规则会跳过。</Text>}
+        footer={<Text>从分享菜单或快捷指令传入文本或链接时，会自动追加到这里指定的文件。链接会自动提取主机名，重复规则会跳过。</Text>}
       >
         <TextField title="目标文件" value={intentFilePath} prompt="如 Surge/reject.list" />
         <TextField title="规则类型" value={intentRuleType} prompt="默认 DOMAIN-SUFFIX" />
       </Section>
+
+      {testMsg.value ? (
+        <Section header={<Text>连接检测</Text>}>
+          <Text foregroundStyle={testMsg.value.includes('成功') ? 'systemGreen' : 'secondaryLabel'}>
+            {testMsg.value}
+          </Text>
+        </Section>
+      ) : null}
+
       <Section>
+        <Button
+          title={testing.value ? '检测中…' : '检测连接并自动分支'}
+          disabled={testing.value}
+          action={testConnection}
+        />
         <Button
           title="保存配置"
           action={() => {
-            saveConfig({
-              token: token.value.trim(),
-              owner: owner.value.trim(),
-              repo: repo.value.trim(),
-              path: path.value.trim(),
-              branch: branch.value.trim() || 'main',
-            })
+            saveDraft()
             saveIntentTarget({
               filePath: intentFilePath.value.trim(),
               ruleType: intentRuleType.value.trim(),
@@ -363,11 +559,12 @@ function ConfigView({ onBack }: { onBack: () => void }) {
 const FILE_SIZE_LIMIT = 1024 * 1024  // 1MB，超过则不让进编辑器
 
 function BrowserView({
-  currentPath, onNavigate, onPickFile, onConfig,
+  currentPath, onNavigate, onPickFile, onRawEdit, onConfig,
 }: {
   currentPath: string
   onNavigate: (newPath: string) => void
   onPickFile: (f: FileItem, sha: string, parsed: ParsedFile) => void
+  onRawEdit: (f: FileItem, content: string, sha: string) => void
   onConfig: () => void
 }) {
   const items = useObservable<BrowserItem[]>([])
@@ -412,11 +609,38 @@ function BrowserView({
     try {
       const { content, sha } = await fetchFileContent(cfg, f.path)
       const parsed = parseFile(content)
-      onPickFile({ id: f.id, name: f.name, path: f.path, sha }, sha, parsed)
+      onPickFile({ id: f.id, name: f.name, path: f.path, sha, rawUrl: f.rawUrl }, sha, parsed)
     } catch (e: any) {
       showMsg(e.message ?? '读取失败')
     }
     loading.setValue(false)
+  }
+
+  const openRawFile = async (f: BrowserItem) => {
+    if (f.size > FILE_SIZE_LIMIT) {
+      showMsg(`文件过大（${formatSize(f.size)}），暂不支持编辑`)
+      return
+    }
+    const cfg = getConfig()
+    loading.setValue(true)
+    try {
+      const { content, sha } = await fetchFileContent(cfg, f.path)
+      onRawEdit({ id: f.id, name: f.name, path: f.path, sha, rawUrl: f.rawUrl }, content, sha)
+    } catch (e: any) {
+      showMsg(e.message ?? '读取失败')
+    }
+    loading.setValue(false)
+  }
+
+  const copyRawLink = async (f: BrowserItem) => {
+    try {
+      const cfg = getConfig()
+      const link = f.rawUrl || rawFileUrl(cfg, f.path)
+      await Pasteboard.setString(link)
+      showMsg('已复制原始链接')
+    } catch (e: any) {
+      showMsg(e.message ?? '复制失败')
+    }
   }
 
   // 派生：分组后的目录与文件
@@ -440,18 +664,21 @@ function BrowserView({
   return (
     <List
       navigationTitle={navTitle}
+      refreshable={async () => {
+        await Promise.all([refresh(), delay(500)])
+      }}
       toast={{ isPresented: showToast, message: toastMsg.value, position: 'bottom' }}
       toolbar={{
         topBarLeading: !isRoot
           ? <Button title="上级" systemImage="chevron.up" action={goUp} />
           : undefined,
-        topBarTrailing: <Button title="配置" action={onConfig} />,
+        topBarTrailing: <Button title="配置" systemImage="gearshape" action={onConfig} />,
       }}
     >
       {/* 当前路径 + 操作 */}
       <Section
         header={<Text>当前位置</Text>}
-        footer={<Text>{isRoot ? `仓库根目录 (${cfg.owner}/${cfg.repo || '?'})` : currentPath}</Text>}
+        footer={<Text>{isRoot ? `${cfg.owner}/${cfg.repo || '?'} · ${preferredBranch(cfg)}` : `${currentPath} · ${preferredBranch(cfg)}`}</Text>}
       >
         <Button
           title={loading.value ? '加载中…' : '刷新'}
@@ -488,13 +715,27 @@ function BrowserView({
       {files.length > 0 ? (
         <Section
           header={<Text>文件 ({files.length})</Text>}
-          footer={<Text>点击文件进入编辑模式</Text>}
+          footer={<Text>点击文件进入规则编辑；长按可复制 raw 链接或原始编辑</Text>}
         >
           {files.map(f => (
-            <Button key={f.id} action={() => openFile(f)}>
+            <Button
+              key={f.id}
+              action={() => openFile(f)}
+              contextMenu={{
+                menuItems: (
+                  <>
+                    <Section>
+                      <Button title="规则编辑" systemImage="list.bullet.rectangle" action={() => openFile(f)} />
+                      <Button title="原始编辑" systemImage="pencil" action={() => openRawFile(f)} />
+                      <Button title="复制 raw 链接" systemImage="doc.on.doc" action={() => copyRawLink(f)} />
+                    </Section>
+                  </>
+                ),
+              }}
+            >
               <HStack spacing={8}>
                 <Image systemName="doc.text" foregroundStyle="secondaryLabel" />
-                <Text>{f.name}</Text>
+                <Text lineLimit={1}>{f.name}</Text>
                 <Spacer />
                 <Text font="caption" foregroundStyle="secondaryLabel">
                   {formatSize(f.size)}
@@ -573,6 +814,14 @@ function RuleEditorView({
   const trailing = useObservable(rule.trailing)
   const comment = useObservable(rule.comment)
   const error = useObservable('')
+
+  useEffect(() => {
+    type.setValue(rule.type === RAW_TYPE ? '' : rule.type)
+    value.setValue(rule.value)
+    trailing.setValue(rule.trailing)
+    comment.setValue(rule.comment)
+    error.setValue('')
+  }, [rule.id])
 
   const save = () => {
     const t = type.value.trim().toUpperCase()
@@ -697,7 +946,7 @@ function DiffView({
         ),
       }}
     >
-      <Section header={<Text>{fileName}</Text>} footer={<Text>提交后将直接写入远端 main 分支</Text>}>
+      <Section header={<Text>{fileName}</Text>} footer={<Text>提交后将直接写入当前配置分支</Text>}>
         <TextField title="commit message" value={message as any} prompt="提交说明" axis="vertical" />
       </Section>
 
@@ -795,6 +1044,7 @@ function EditorView({
   const lastUsedType = useObservable(
     parsed.rules.find(r => r.type !== RAW_TYPE)?.type ?? 'DOMAIN-SUFFIX',
   )
+  const defaultRulePrefix = parsed.defaultRulePrefix
 
   // 原始快照 Map（用于检测「修改」&「删除原项」）。useRef 不触发重渲。
   const originalRef = useRef<Map<string, Rule> | null>(null)
@@ -908,6 +1158,7 @@ function EditorView({
   const startAdd = () => {
     draftRule.setValue({
       id: newId(),
+      prefix: defaultRulePrefix,
       type: lastUsedType.value || 'DOMAIN-SUFFIX',
       value: '',
       trailing: '',
@@ -917,7 +1168,7 @@ function EditorView({
   }
 
   const saveDraft = (next: Rule) => {
-    rules.setValue([...rules.value, next])
+    rules.setValue([...rules.value, { ...next, prefix: next.prefix || defaultRulePrefix }])
     if (next.type !== RAW_TYPE) lastUsedType.setValue(next.type)
     draftRule.setValue(null)
   }
@@ -1193,12 +1444,112 @@ function EditorView({
   )
 }
 
+// =============== 原始文件编辑器 ===============
+
+function RawEditorView({
+  file, content, sha, onBack,
+}: {
+  file: FileItem
+  content: string
+  sha: string
+  onBack: () => void
+}) {
+  const currentSha = useObservable(sha)
+  const saving = useObservable(false)
+  const showToast = useObservable(false)
+  const toastMsg = useObservable('')
+  const savedContentRef = useRef(content)
+  const controller = useMemo(() => new EditorController({
+    content,
+    ext: fileExt(file.name) as any,
+    readOnly: false,
+  }), [file.path])
+
+  useEffect(() => {
+    return () => controller.dispose()
+  }, [controller])
+
+  const showMsg = (msg: string) => {
+    toastMsg.setValue(msg)
+    showToast.setValue(true)
+  }
+
+  const saveRaw = async () => {
+    if (saving.value) return
+    saving.setValue(true)
+    try {
+      // EditorController.content 有轻微防抖，点保存后等一帧，避免刚输入的内容没同步。
+      await delay(180)
+      const nextContent = controller.content
+      if (nextContent === savedContentRef.current) {
+        showMsg('没有更改')
+        return
+      }
+
+      const cfg = getConfig()
+      const latest = await withTimeout(
+        fetchFileContent(cfg, file.path),
+        10000,
+        '刷新远端文件超时，请检查网络后重试',
+      )
+      currentSha.setValue(latest.sha)
+
+      if (latest.content === nextContent) {
+        savedContentRef.current = nextContent
+        showMsg('远端已是最新内容')
+        return
+      }
+
+      const result = await withTimeout(
+        commitFileContent(cfg, file.path, nextContent, latest.sha, `Update ${file.name}`),
+        20000,
+        '保存到 GitHub 超时，请稍后重试',
+      )
+      if (result.ok) {
+        if (result.newSha) currentSha.setValue(result.newSha)
+        savedContentRef.current = nextContent
+        Widget.reloadUserWidgets()
+        showMsg('原始文件已保存')
+      } else {
+        showMsg(`保存失败: ${result.error}`)
+      }
+    } catch (e: any) {
+      showMsg(`保存失败: ${e.message ?? '网络错误'}`)
+    } finally {
+      saving.setValue(false)
+    }
+  }
+
+  return (
+    <Editor
+      controller={controller}
+      scriptName={file.name}
+      navigationTitle={file.name}
+      showAccessoryView={true}
+      toast={{ isPresented: showToast, message: toastMsg.value, position: 'bottom' }}
+      toolbar={{
+        topBarLeading: (
+          <Button action={onBack}>
+            <Image systemName="chevron.left" />
+          </Button>
+        ),
+        topBarTrailing: (
+          <Button disabled={saving.value} action={saveRaw}>
+            {saving.value ? <ProgressView /> : <Image systemName="checkmark" />}
+          </Button>
+        ),
+      }}
+    />
+  )
+}
+
 // =============== 顶层路由 ===============
 
 type AppMode =
   | { kind: 'browser' }
   | { kind: 'config' }
   | { kind: 'editor'; file: FileItem; sha: string; parsed: ParsedFile }
+  | { kind: 'rawEditor'; file: FileItem; content: string; sha: string }
 
 function App() {
   const [mode, setMode] = useState<AppMode>({ kind: 'browser' })
@@ -1209,7 +1560,8 @@ function App() {
 
   const handleNavigate = (newPath: string) => {
     setCurrentPath(newPath)
-    Storage.set(LAST_PATH_KEY, newPath)
+    if (newPath) Storage.set(LAST_PATH_KEY, newPath)
+    else Storage.remove(LAST_PATH_KEY)
   }
 
   if (mode.kind === 'config') {
@@ -1225,11 +1577,22 @@ function App() {
       />
     )
   }
+  if (mode.kind === 'rawEditor') {
+    return (
+      <RawEditorView
+        file={mode.file}
+        content={mode.content}
+        sha={mode.sha}
+        onBack={() => setMode({ kind: 'browser' })}
+      />
+    )
+  }
   return (
     <BrowserView
       currentPath={currentPath}
       onNavigate={handleNavigate}
       onPickFile={(file, sha, parsed) => setMode({ kind: 'editor', file, sha, parsed })}
+      onRawEdit={(file, content, sha) => setMode({ kind: 'rawEditor', file, content, sha })}
       onConfig={() => setMode({ kind: 'config' })}
     />
   )
@@ -1243,4 +1606,8 @@ function View() {
   )
 }
 
-Navigation.present({ element: <View /> }).then(() => Script.exit())
+Navigation.present({ element: <View /> })
+  .catch(async (e: any) => {
+    await Dialog.alert({ title: '错误', message: String(e?.message ?? e) })
+  })
+  .finally(() => Script.exit())
