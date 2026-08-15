@@ -4,32 +4,38 @@ import { handleAnyData } from "./index"
 
 const SMS_DIVIDER = "---SMS-DIVIDER---"
 
-function collectText(value: unknown): string[] {
+function collectText(value: unknown, seen = new Set<object>()): string[] {
   if (typeof value === "string") {
     return value.trim() ? [value] : []
   }
 
   if (Array.isArray(value)) {
-    return value.flatMap(collectText)
+    return value.flatMap(item => collectText(item, seen))
   }
 
   if (value && typeof value === "object") {
+    if (seen.has(value)) return []
+    seen.add(value)
+
     const record = value as Record<string, unknown>
-    for (const key of ["body", "text", "content", "message"]) {
-      const texts = collectText(record[key])
-      if (texts.length > 0) return texts
-    }
+    const preferredKeys = ["body", "text", "content", "message", "value", "Value", "string"]
+    const keys = [
+      ...preferredKeys.filter(key => key in record),
+      ...Object.keys(record).filter(key => !preferredKeys.includes(key)),
+    ]
+    return keys.flatMap(key => collectText(record[key], seen))
   }
 
   return []
 }
 
 try {
-  const shortcutTexts = collectText(Intent.shortcutParameter?.value)
-  const texts = shortcutTexts.length > 0
-    ? shortcutTexts
+  const shortcutValue = Intent.shortcutParameter?.value
+  const shortcutTexts = collectText(shortcutValue)
+  const fallbackTexts = shortcutTexts.length > 0
+    ? []
     : collectText(Intent.textsParameter)
-
+  const texts = [...new Set([...shortcutTexts, ...fallbackTexts])]
   if (texts.length === 0) {
     Script.exit(Intent.text("没有收到短信内容，请检查快捷指令的‘查找信息’结果和脚本输入。"))
   } else {
