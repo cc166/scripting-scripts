@@ -1,43 +1,36 @@
 {
-  "author" : null,
-  "version" : "1.0.0",
-  "iconImage" : null,
-  "entry" : "index.tsx",
-  "contributors" : [
-
-  ],
-  "description" : null,
-  "permissions" : null,
-  "color" : "rgba(252, 124, 93,1)",
-  "intentInputTypes" : [
-
-  ],
-  "name" : "和风天气",
-  "localizedDescriptions" : {
-    "de" : "",
-    "es" : "",
-    "en" : "",
-    "ja" : "",
-    "zh" : "",
-    "fr" : "",
-    "ru" : "",
-    "it" : "",
-    "pt" : ""
+  "permissions": null,
+  "intentInputTypes": [],
+  "contributors": [],
+  "localizedNames": {
+    "ru": "",
+    "de": "",
+    "es": "",
+    "it": "",
+    "fr": "",
+    "ja": "",
+    "zh": "",
+    "pt": "",
+    "en": ""
   },
-  "runInApp" : true,
-  "localizedNames" : {
-    "ja" : "",
-    "pt" : "",
-    "es" : "",
-    "en" : "",
-    "zh" : "",
-    "de" : "",
-    "ru" : "",
-    "fr" : "",
-    "it" : ""
+  "localizedDescriptions": {
+    "it": "",
+    "zh": "",
+    "ru": "",
+    "fr": "",
+    "pt": "",
+    "ja": "",
+    "es": "",
+    "de": "",
+    "en": ""
   },
-  "icon" : "cloud.rain.fill",
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E5%92%8C%E9%A3%8E%E5%A4%A9%E6%B0%94.scripting"
-  }
+  "runInApp": true,
+  "icon": "cloud.rain.fill",
+  "entry": "index.tsx",
+  "description": null,
+  "author": null,
+  "version": "1.0.1",
+  "color": "rgba(252, 124, 93,1)",
+  "iconImage": null,
+  "name": "和风天气"
 }

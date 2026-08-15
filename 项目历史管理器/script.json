@@ -1,46 +1,40 @@
 {
-  "iconImage" : "",
-  "entry" : "index.tsx",
-  "color" : "rgba(36, 120, 98, 1)",
-  "localizedDescriptions" : {
-    "ja" : "",
-    "ru" : "",
-    "de" : "",
-    "pt" : "",
-    "it" : "",
-    "es" : "",
-    "zh" : "查看 Project Auto Backup 生成的项目历史，并将项目还原到任意备份快照。",
-    "fr" : "",
-    "en" : "Browse Project Auto Backup snapshots and restore projects to a selected history point."
+  "color": "rgba(36, 120, 98, 1)",
+  "localizedDescriptions": {
+    "de": "",
+    "es": "",
+    "ja": "",
+    "ru": "",
+    "it": "",
+    "pt": "",
+    "fr": "",
+    "en": "Browse Project Auto Backup snapshots and restore projects to a selected history point.",
+    "zh": "查看 Project Auto Backup 生成的项目历史，并将项目还原到任意备份快照。"
   },
-  "version" : "1.0.0",
-  "localizedNames" : {
-    "zh" : "项目历史管理器",
-    "it" : "",
-    "en" : "Project History Manager",
-    "ja" : "",
-    "es" : "",
-    "fr" : "",
-    "de" : "",
-    "pt" : "",
-    "ru" : ""
+  "name": "项目历史管理器",
+  "intentInputTypes": [],
+  "description": "查看 Project Auto Backup 生成的项目历史，并将项目还原到任意备份快照。",
+  "icon": "clock.arrow.circlepath",
+  "permissions": null,
+  "runInApp": true,
+  "contributors": [],
+  "localizedNames": {
+    "pt": "",
+    "fr": "",
+    "de": "",
+    "ru": "",
+    "ja": "",
+    "it": "",
+    "zh": "项目历史管理器",
+    "en": "Project History Manager",
+    "es": ""
   },
-  "intentInputTypes" : [
-
-  ],
-  "author" : {
-    "email" : null,
-    "name" : "Waa",
-    "homepage" : "https:\/\/github.com\/iamwaa"
-  },
-  "contributors" : [
-
-  ],
-  "description" : "查看 Project Auto Backup 生成的项目历史，并将项目还原到任意备份快照。",
-  "name" : "项目历史管理器",
-  "icon" : "clock.arrow.circlepath",
-  "runInApp" : true,
-  "remoteResource" : {
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E9%A1%B9%E7%9B%AE%E5%8E%86%E5%8F%B2%E7%AE%A1%E7%90%86%E5%99%A8.scripting"
+  "entry": "index.tsx",
+  "version": "1.0.1",
+  "iconImage": "",
+  "author": {
+    "name": "Waa",
+    "email": null,
+    "homepage": "https://github.com/iamwaa"
   }
 }
