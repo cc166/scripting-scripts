@@ -8,6 +8,12 @@ export const FILE_PATH = Path.join(BASE_PATH, 'launcher_apps.json')
 export const CONFIG_PATH = Path.join(BASE_PATH, 'launcher_config.json')
 export const CACHE_PATH = Path.join(BASE_PATH, 'cache')
 export const FOLDERS_PATH = Path.join(BASE_PATH, 'launcher_folders.json')
+/** Directory holding the user-authored JS of "button" items, keyed by item id. */
+export const BUTTONS_PATH = Path.join(BASE_PATH, 'buttons')
+
+export function getButtonCodePath(id: string) {
+  return Path.join(BUTTONS_PATH, `${id}.js`)
+}
 
 export function getIconCachePath(url: string) {
   if (!url) return ''
@@ -15,21 +21,51 @@ export function getIconCachePath(url: string) {
   return Path.join(CACHE_PATH, `${hash}.png`)
 }
 
+// Migrates legacy single-folder data (folderId) to the multi-folder format (folderIds).
+export function migrateAppItem(
+  item: AppItem & { folderId?: string }
+): AppItem {
+  const { folderId, ...rest } = item
+  const folderIds = [...(rest.folderIds ?? [])]
+  if (folderId && !folderIds.includes(folderId)) {
+    folderIds.push(folderId)
+  }
+  return { ...rest, folderIds }
+}
+
 export interface AppItem {
   id: string
   name: string
   icon: string
   iconType?: 'symbol' | 'image' | 'transparent_image'
-  mode?: 'url' | 'bundleId'
+  mode?: 'url' | 'bundleId' | 'script'
   url: string
   bundleId?: string
+  /**
+   * For `mode === 'script'`: run the JS inside the widget extension when
+   * tapped, instead of opening the Scripting app. Defaults to `true`.
+   */
+  runInWidget?: boolean
   color: string
-  folderId?: string
+  /** Folders this app belongs to (an app can be in multiple folders). */
+  folderIds?: string[]
+}
+
+export interface FolderStyle {
+  iconSize?: number
+  shape?: 'rounded' | 'circle'
+  cornerRadius?: number
+  spacing?: number
+  widgetAccentedRenderingMode?: Config['widgetAccentedRenderingMode']
 }
 
 export interface Folder {
   id: string
   name: string
+  icon?: string
+  /** Custom folder color (hex string). Falls back to system blue when unset. */
+  color?: string
+  style?: FolderStyle
 }
 
 export interface Config {
@@ -41,6 +77,7 @@ export interface Config {
     | 'desaturated'
     | 'accentedDesaturated'
     | 'fullColor'
+  cornerRadius?: number
 }
 
 export const DEFAULT_CONFIG: Config = {
@@ -50,191 +87,15 @@ export const DEFAULT_CONFIG: Config = {
   widgetAccentedRenderingMode: 'fullColor'
 }
 
-const ICON_NAME_MIGRATIONS: Record<string, string> = {
-  'yen.sign.circle.fill': 'creditcard.fill',
-  'yensign.circle.fill': 'creditcard.fill'
-}
-
-const DEFAULT_APP_PROFILES: Record<string, Partial<AppItem>> = {
-  微信: {
-    bundleId: 'com.tencent.xin',
-    icon: 'message.fill',
-    iconType: 'symbol',
-    mode: 'bundleId',
-    color: '#07C160'
-  },
-  支付宝: {
-    bundleId: 'com.alipay.iphoneclient',
-    icon: 'creditcard.fill',
-    iconType: 'symbol',
-    mode: 'bundleId',
-    color: '#1677FF'
-  },
-  设置: {
-    bundleId: 'com.apple.Preferences',
-    icon: 'gear',
-    iconType: 'symbol',
-    mode: 'bundleId',
-    color: '#8E8E93'
-  },
-  扫一扫: {
-    bundleId: 'com.tencent.xin',
-    icon: 'qrcode.viewfinder',
-    iconType: 'symbol',
-    mode: 'url',
-    url: 'weixin://scanqrcode',
-    color: '#07C160'
-  },
-  付款码: {
-    bundleId: 'com.alipay.iphoneclient',
-    icon: 'creditcard.viewfinder',
-    iconType: 'symbol',
-    mode: 'url',
-    url: 'alipayqr://platformapi/startapp?saId=10000007',
-    color: '#1677FF'
-  },
-  乘车码: {
-    bundleId: 'com.alipay.iphoneclient',
-    icon: 'bus.fill',
-    iconType: 'symbol',
-    mode: 'url',
-    url: 'alipayqr://platformapi/startapp?saId=200011235',
-    color: '#1677FF'
-  },
-  日历: {
-    bundleId: 'com.apple.mobilecal',
-    icon: 'calendar',
-    iconType: 'symbol',
-    mode: 'bundleId',
-    color: '#FF3B30'
-  },
-  照片: {
-    bundleId: 'com.apple.mobileslideshow',
-    icon: 'photo.fill',
-    iconType: 'symbol',
-    mode: 'bundleId',
-    color: '#FF2D55'
-  }
-}
-
-export function migrateAppIcons(apps: AppItem[]): AppItem[] {
-  return apps.map(app => {
-    const migratedIcon = ICON_NAME_MIGRATIONS[app.icon]
-    return migratedIcon ? { ...app, icon: migratedIcon } : app
-  })
-}
-
-export function normalizeApp(app: AppItem): AppItem {
-  const migrated = migrateAppIcons([app])[0]
-  const profile = DEFAULT_APP_PROFILES[migrated.name]
-
-  if (!profile) {
-    return {
-      ...migrated,
-      iconType:
-        migrated.iconType ??
-        (migrated.icon.startsWith('http') ? 'image' : 'symbol')
-    }
-  }
-
-  return {
-    ...migrated,
-    ...profile,
-    icon: profile.icon ?? migrated.icon,
-    iconType:
-      profile.iconType ??
-      migrated.iconType ??
-      (migrated.icon.startsWith('http') ? 'image' : 'symbol'),
-    mode: profile.mode ?? migrated.mode,
-    url: profile.url ?? migrated.url,
-    bundleId: profile.bundleId ?? migrated.bundleId,
-    color: profile.color ?? migrated.color
-  }
-}
-
-export function normalizeApps(apps: AppItem[]): AppItem[] {
-  return apps.map(app => normalizeApp(app))
-}
-
 export const DEFAULT_APPS: AppItem[] = [
   {
     id: '1',
-    name: '微信',
-    icon: 'message.fill',
-    iconType: 'symbol',
+    name: 'Scripting',
+    icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/44/19/69/441969d8-13c7-7234-01f4-2056b8e28a28/AppIcon-0-0-1x_U007epad-0-1-P3-85-220.png/100x100bb.jpg',
+    iconType: 'image',
     mode: 'bundleId',
-    url: 'weixin://',
-    bundleId: 'com.tencent.xin',
-    color: '#07C160'
-  },
-  {
-    id: '2',
-    name: '支付宝',
-    icon: 'creditcard.fill',
-    iconType: 'symbol',
-    mode: 'bundleId',
-    url: 'alipay://',
-    bundleId: 'com.alipay.iphoneclient',
+    url: '',
+    bundleId: 'com.scripting.ios',
     color: '#1677FF'
-  },
-  {
-    id: '3',
-    name: '设置',
-    icon: 'gear',
-    iconType: 'symbol',
-    mode: 'bundleId',
-    url: 'App-Prefs:root',
-    bundleId: 'com.apple.Preferences',
-    color: '#8E8E93'
-  },
-  {
-    id: '4',
-    name: '扫一扫',
-    icon: 'qrcode.viewfinder',
-    iconType: 'symbol',
-    mode: 'url',
-    url: 'weixin://scanqrcode',
-    bundleId: 'com.tencent.xin',
-    color: '#07C160'
-  },
-  {
-    id: '5',
-    name: '付款码',
-    icon: 'creditcard.viewfinder',
-    iconType: 'symbol',
-    mode: 'url',
-    url: 'alipayqr://platformapi/startapp?saId=10000007',
-    bundleId: 'com.alipay.iphoneclient',
-    color: '#1677FF'
-  },
-  {
-    id: '6',
-    name: '乘车码',
-    icon: 'bus.fill',
-    iconType: 'symbol',
-    mode: 'url',
-    url: 'alipayqr://platformapi/startapp?saId=200011235',
-    bundleId: 'com.alipay.iphoneclient',
-    color: '#1677FF'
-  },
-  {
-    id: '7',
-    name: '日历',
-    icon: 'calendar',
-    iconType: 'symbol',
-    mode: 'bundleId',
-    url: 'calshow://',
-    bundleId: 'com.apple.mobilecal',
-    color: '#FF3B30'
-  },
-  {
-    id: '8',
-    name: '照片',
-    icon: 'photo.fill',
-    iconType: 'symbol',
-    mode: 'bundleId',
-    url: 'photos-redirect://',
-    bundleId: 'com.apple.mobileslideshow',
-    color: '#FF2D55'
   }
 ]
