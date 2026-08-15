@@ -12,15 +12,12 @@ import {
   TextField,
   VStack,
   ZStack,
+  fetch,
   useEffect,
   useRef,
   useState
 } from 'scripting'
 import type { Color } from 'scripting'
-
-declare const fetch: (url: string) => Promise<{
-  json: () => Promise<unknown>
-}>
 
 export interface ITunesApp {
   trackId: number
@@ -499,10 +496,9 @@ export function SearchSheet({
     )}&entity=software&country=${countryCode}&limit=10`
     fetch(url)
       .then((r) => r.json())
-      .then((data) => {
-        const searchData = data as { resultCount: number; results: ITunesApp[] }
+      .then((data: { resultCount: number; results: ITunesApp[] }) => {
         if (reqId !== reqIdRef.current) return
-        const list = Array.isArray(searchData?.results) ? searchData.results : []
+        const list = Array.isArray(data?.results) ? data.results : []
         if (list.length === 0) {
           setResults([])
           setState('noresults')
