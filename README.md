@@ -14,7 +14,7 @@ Scripting 脚本的非官方维护副本和自动更新包。
 - [Wenyuan](https://github.com/wenyuanw)：`Pickup Code`
 - [Jackie / Honye](https://github.com/Honye/scripting-scripts)：`CLS Telegraph`、`Launch`
 - [ByteValley](https://github.com/ByteValley/NetTool)：`中國聯通`
-- [Yuheng0101 / 𝐎𝐍𝐙𝟑𝐕](https://github.com/Yuheng0101/X) 与 [Primovist](https://github.com/Primovist/Scripting)：`Loon/网上国网`
+- [MaYIHEI](https://github.com/MaYIHEI/paperclip)：`Loon/网上国网`
 - [Waa](https://github.com/iamwaa/Scripting)：`项目历史管理器`
 
 `CLS Telegraph` 和 `Launch` 的上游包声明为 ISC；详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。其余第三方来源在审计时未找到明确的再分发或修改许可，本仓库不对这些项目授予额外许可。使用者应自行核对上游条款并承担使用风险。
