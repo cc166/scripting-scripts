@@ -6,7 +6,7 @@
 http://api.wsgw-rewrite.com/electricity/bill/all
 ```
 
-插件**没有定时任务，也没有随机延迟**。小组件按自己的刷新与当日缓存逻辑请求接口；Loon 命中请求后执行 `95598.js`，返回电费、电量和阶梯数据。
+插件**没有启用定时任务，也没有随机延迟**。原 `wsgw.sgmodule` 虽保留一条每日 09:00 Cron，但默认 `INFORM="#"` 会将该行注释关闭；这里按纯接口用途不迁移 Cron。小组件按自己的刷新与当日缓存逻辑请求接口；Loon 命中请求后执行 `95598.js`，返回电费、电量和阶梯数据。
 
 ## 安装
 
@@ -32,7 +32,7 @@ BoxJS **只是参数设置和持久化页面，不负责登录**。当 Scripting
 BoxJS 订阅：
 
 ```text
-https://raw.githubusercontent.com/Yuheng0101/X/refs/heads/main/Tasks/boxjs.json
+https://raw.githubusercontent.com/Primovist/Scripting/refs/heads/main/boxjs.json
 ```
 
 ## 使用顺序
@@ -45,7 +45,8 @@ https://raw.githubusercontent.com/Yuheng0101/X/refs/heads/main/Tasks/boxjs.json
 
 ## 来源
 
-- Scripting 小组件：<https://github.com/Primovist/Scripting>
-- BoxJS 与业务核心：<https://github.com/Yuheng0101/X/tree/main/Tasks/95598>
+- 原始 Surge 模块：<https://raw.githubusercontent.com/Primovist/Scripting/refs/heads/main/wsgw.sgmodule>
+- Scripting 小组件与 BoxJS：<https://github.com/Primovist/Scripting>
+- 业务核心：<https://github.com/Yuheng0101/X/tree/main/Tasks/95598>
 
 本目录是非官方 Loon 适配，不代表原作者发布或认可；上游业务逻辑与作者信息保留在文件注释及插件元数据中。
