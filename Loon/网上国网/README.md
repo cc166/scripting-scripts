@@ -13,7 +13,7 @@ http://api.wsgw-rewrite.com/electricity/bill/all
 插件地址：
 
 ```text
-https://raw.githubusercontent.com/cc166/scripting-scripts/main/L%6fon/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91/wsgw.lpx
+https://raw.githubusercontent.com/cc166/scripting-scripts/main/Loon/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91/wsgw-interface.lpx
 ```
 
 ## 登录与 BoxJS
@@ -38,7 +38,7 @@ https://raw.githubusercontent.com/Yuheng0101/X/refs/heads/main/Tasks/boxjs.json
 ## 使用顺序
 
 1. 在 BoxJS 添加上述订阅，进入「网上国网」填写账号和密码；
-2. 在 Loon 导入并启用 `wsgw.lpx`，确保 MITM 已启用且证书受信任；
+2. 在 Loon 导入并启用 `wsgw-interface.lpx`，确保 MITM 已启用且证书受信任；
 3. 在 Scripting 安装/运行「网上国网」小组件；小组件发起接口请求后自动获取数据。
 
 插件不内置 `DIRECT`，网络路由由 Loon 主配置决定。
