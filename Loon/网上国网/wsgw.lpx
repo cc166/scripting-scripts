@@ -1,24 +1,14 @@
-#!name= 网上国网
-#!desc= 网上国网电费、电量与阶梯信息查询；支持定时通知及 Scripting 小组件接口。
+#!name= 网上国网组件接口
+#!desc= 为 Scripting 网上国网小组件提供 electricity/bill/all 查询接口；账号密码在 BoxJS 配置。
 #!author= 𝐎𝐍𝐙𝟑𝐕, Primovist, Yuheng0101; Loon adaptation by cc166
-#!homepage= https://github.com/Primovist/Scripting/tree/main/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91
+#!homepage= https://github.com/cc166/scripting-scripts/tree/main/Loon/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91
 #!icon= https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/83/d8/8a/83d88a92-5a4d-7a2f-118c-80d795e7a9f6/AppIcon-0-0-1x_U007emarketing-0-5-0-0-sRGB-85-220.png/144x144.png
-#!tag= 组件服务,签到
+#!tag= 组件服务
 #!loon_version= 3.2.1(372)
-
-[Argument]
-username = input,"",tag=登录账号,desc=网上国网 App 或 https://95598.cn 的登录账号
-password = input,"",tag=登录密码,desc=网上国网 App 或 https://95598.cn 的登录密码
-showRecentUsage = switch,false,tag=近期用量,desc=通知中显示近期用电量
-notifyAllAccounts = switch,false,tag=通知全部户号,desc=为所有绑定户号分别输出通知
-debug = switch,false,tag=调试日志,desc=仅排查问题时开启；日志会自动脱敏
-cronEnabled = switch,true,tag=定时查询,desc=启用每日定时查询与通知
-cronExp = input,"0 9 * * *",tag=执行时间,desc=Cron 表达式；默认每天 09:00
-jitterMax = input,"300",tag=随机延迟,desc=定时执行前随机等待 0～600 秒；填 0 关闭
+#!version= 20260818-2
 
 [Script]
-http-request ^https?:\/\/api\.wsgw-rewrite\.com\/electricity\/bill\/all script-path=https://raw.githubusercontent.com/cc166/scripting-scripts/main/Loon/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91/wsgw.js, requires-body=true, timeout=120, tag=网上国网接口, argument=[{username},{password},{debug},{showRecentUsage},{notifyAllAccounts},0]
-cron {cronExp} script-path=https://raw.githubusercontent.com/cc166/scripting-scripts/main/Loon/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91/wsgw.js, timeout=720, tag=网上国网查询, enable={cronEnabled}, argument=[{username},{password},{debug},{showRecentUsage},{notifyAllAccounts},{jitterMax}]
+http-request ^https?:\/\/api\.wsgw-rewrite\.com\/electricity\/bill\/all script-path=https://raw.githubusercontent.com/cc166/scripting-scripts/main/Loon/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91/95598.js, requires-body=true, timeout=120, tag=网上国网组件接口
 
 [MITM]
 hostname = api.wsgw-rewrite.com
