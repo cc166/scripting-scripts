@@ -1,58 +1,61 @@
-# 网上国网积分签到（Loon）
+# 网上国网（Loon）
 
-这是截图中 **@MaYIHEI** 的网上国网积分签到流程：从 App 抓取 Cookie 与签到请求，再由 Loon 定时复用。它不是 Primovist / Yuheng 的电费查询组件，也不需要在 BoxJS 填账号密码。
+这是将 Primovist 原版 [`wsgw.sgmodule`](https://raw.githubusercontent.com/Primovist/Scripting/refs/heads/main/wsgw.sgmodule) 按原功能迁移到 Loon 的版本，用于 Scripting「网上国网」小组件查询电费、电量与余量，并保留原模块的可选定时查询。
 
-## 安装
+## 安装地址
 
 Loon 插件：
 
 ```text
-https://raw.githubusercontent.com/cc166/scripting-scripts/main/Loon/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91/sgcc.lpx
+https://raw.githubusercontent.com/cc166/scripting-scripts/main/Loon/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91/wsgw-loon.lpx
 ```
 
-MaYIHEI 原版 BoxJS：
+直接使用 Primovist 原版 BoxJS，不另建配置：
 
 ```text
-https://raw.githubusercontent.com/MaYIHEI/paperclip/main/paperclip.boxjs.json
+https://raw.githubusercontent.com/Primovist/Scripting/refs/heads/main/boxjs.json
 ```
 
-BoxJS 项目 ID 为 `paperclip.sgcc`，数据命名与截图完全一致：
+BoxJS 项目 ID 为 `yuheng.95598.web`，脚本读取的数据名与原版完全一致：
 
-- `sgcc_data`：抓到的 `t`、`userid` 和设备请求头；
-- `sgcc_signin`：提交签到接口的加密请求体 `data / skey / path`；
-- `sgcc_clear`：清除以上两项，运行一次签到脚本后自动复位；
-- `sgcc_debug`：输出请求与响应调试日志。
+- `95598_log_debug`：调试日志；
+- `95598_recent_elc_fee`：近期用量；
+- `95598_notify_type`：通知全部绑定户号；
+- `95598_username`：网上国网账号，通常为手机号；
+- `95598_password`：网上国网密码；
+- `95598_bizrt`：脚本维护的登录态缓存；
+- `95598_bindInfo`：脚本维护的绑定户号缓存。
 
-其中 `sgcc_data`、`sgcc_signin` 是脚本自动写入的数据，不是手填项。BoxJS 页面只提供“清除 Cookie”和“调试模式”两个设置。
+最后两项由脚本自动维护，不要手动填写。
 
-## 抓取与签到流程
+## 首次使用
 
-1. 在 BoxJS 添加上述 MaYIHEI 订阅；
-2. 在 Loon 导入并启用 `sgcc.lpx`，开启全局 MITM 总开关，安装并信任 Loon CA 证书；插件内的抓取脚本必须保持启用；
-3. 完全退出后重新打开「网上国网」App，进入「我的 / 积分签到」；
-4. 等待两条通知：
-   - `✅ 网上国网 Cookie 获取成功`
-   - `✅ 网上国网 签到请求已抓`
-5. 回到 BoxJS 检查 `sgcc_data` 与 `sgcc_signin` 均已有数据；
-6. 每天 `08:30` 由 Loon 自动执行签到，也可点 BoxJS 项目右上角运行按钮手动执行。
+1. 在 BoxJS 添加上面的 Primovist 原版订阅；
+2. 打开 BoxJS 的「网上国网」，填写账号、密码和需要的业务开关；
+3. 在 Loon 导入并启用 `wsgw-loon.lpx`，开启 MITM 并信任 Loon CA 证书；
+4. 在 Scripting 安装并运行网上国网小组件。小组件请求 `api.wsgw-rewrite.com/electricity/bill/all` 时，Loon 会执行原 `95598.js` 登录并返回数据；
+5. 如需每日主动查询通知，在 Loon 插件参数中开启“启用定时查询”。默认时间为每天 `09:00`。
 
-如果像截图一样只有 `sgcc_data` 有值、`sgcc_signin` 显示“无数据”，说明抓取只完成了一半。保持插件与 MITM 开启，重新进入积分签到页，直到收到第二条“签到请求已抓”通知。
+## 与原 Surge 模块的对应关系
 
-## 实现
+| Primovist `wsgw.sgmodule` | Loon `wsgw-loon.lpx` |
+|---|---|
+| `electricity/bill/all` 接口重写 | 原正则、原 `95598.js`，保持不变 |
+| `INFORM="#"` | `cronEnabled=false`，定时任务默认关闭 |
+| `CRONEXP="0 9 * * *"` | `cronExp="0 9 * * *"` |
+| `TIMEOUT=60` | `scriptTimeout=60` |
+| `USERNAME / PASSWORD / 三个业务开关` | 直接读取原 BoxJS 的 `95598_*` 数据 |
+| `api.wsgw-rewrite.com` MITM | 保持不变 |
 
-- 抓取域名：`csc-service.sgcc.com.cn:28630`；
-- 签到接口：`/osg-omgmt1042/member/m1/0103514`；
-- `sgcc.cookie.js` 保存身份请求头与原签到请求；
-- `sgcc.js` 每次重算时间戳和 SM3 `sign` 后提交；
-- 不保存或填写账号密码；
-- 没有随机延迟；
-- Cookie 失效后，重新进入积分签到页抓取即可。
+原模块没有随机延迟，本插件也没有添加。插件不包含 `generic`、`[Rule]` 或 `DIRECT`，网络路由由 Loon 主配置决定。
+
+Loon 参数里没有重复放账号、密码和三个业务开关：原 `95598.js` 会优先使用 `$argument`，空参数反而可能覆盖 BoxJS 已保存的数据。统一由 Primovist 原版 BoxJS 管理，才能确保数据名、缓存和运行结果不分叉。
 
 ## 来源
 
-- 上游项目：<https://github.com/MaYIHEI/paperclip/tree/main/app/sgcc>
-- 原抓取脚本：<https://raw.githubusercontent.com/MaYIHEI/paperclip/main/app/sgcc/sgcc.cookie.js>
-- 原签到脚本：<https://raw.githubusercontent.com/MaYIHEI/paperclip/main/app/sgcc/sgcc.js>
-- 原 BoxJS：<https://raw.githubusercontent.com/MaYIHEI/paperclip/main/paperclip.boxjs.json>
+- Primovist 原 Surge 模块：<https://raw.githubusercontent.com/Primovist/Scripting/refs/heads/main/wsgw.sgmodule>
+- Primovist 原 BoxJS：<https://raw.githubusercontent.com/Primovist/Scripting/refs/heads/main/boxjs.json>
+- Yuheng 原业务脚本：<https://raw.githubusercontent.com/Yuheng0101/X/main/Tasks/95598/95598.js>
+- Scripting 项目：<https://github.com/Primovist/Scripting>
 
-本目录只提供 Loon `.lpx` 封装，业务脚本与 BoxJS 均直接使用 MaYIHEI 原版，避免数据键和流程分叉。
+本目录只做 Surge → Loon 配置语法迁移，不镜像或改写 `95598.js`，避免业务核心与上游分叉。
