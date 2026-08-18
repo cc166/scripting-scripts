@@ -13,7 +13,7 @@ http://api.wsgw-rewrite.com/electricity/bill/all
 插件地址：
 
 ```text
-https://raw.githubusercontent.com/cc166/scripting-scripts/main//Loon%2F%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91%2Fwsgw.lpx
+https://raw.githubusercontent.com/cc166/scripting-scripts/main/Loon%2F%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91%2Fwsgw.lpx
 ```
 
 ## 登录与 BoxJS
