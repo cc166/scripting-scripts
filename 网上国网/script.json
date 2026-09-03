@@ -1,0 +1,48 @@
+{
+  "name" : "网上国网",
+  "localizedDescriptions" : {
+    "ru" : "",
+    "en" : "Query State Grid electricity bill and usage",
+    "ja" : "",
+    "zh" : "查询国家电网电费余额和用电量",
+    "fr" : "",
+    "de" : "",
+    "pt" : "",
+    "es" : "",
+    "it" : ""
+  },
+  "localizedNames" : {
+    "en" : "State Grid",
+    "fr" : "",
+    "ja" : "",
+    "zh" : "网上国网",
+    "de" : "",
+    "it" : "",
+    "ru" : "",
+    "es" : "",
+    "pt" : ""
+  },
+  "permissions" : null,
+  "description" : "国家电网电费、阶梯进度与近期用电趋势小组件",
+  "runInApp" : false,
+  "iconImage" : "https:\/\/raw.githubusercontent.com\/Honye\/scriptable-scripts\/master\/static\/sgcc.png",
+  "color" : "rgba(0, 112, 107, 1)",
+  "entry" : "index.tsx",
+  "contributors" : [
+
+  ],
+  "icon" : "bolt.shield",
+  "author" : {
+    "homepage" : "https:\/\/github.com\/Primovist",
+    "email" : "lchen@lchen.ac.cn",
+    "name" : "LChen"
+  },
+  "remoteResource" : {
+    "autoUpdateInterval" : 600,
+    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91.scripting"
+  },
+  "version" : "3.0.0",
+  "intentInputTypes" : [
+
+  ]
+}
