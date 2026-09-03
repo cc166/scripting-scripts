@@ -39,9 +39,9 @@
   },
   "remoteResource" : {
     "autoUpdateInterval" : 600,
-    "url" : "https:\/\/raw.githubusercontent.com\/cc166\/scripting-scripts\/main\/releases\/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91.scripting"
+    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91"
   },
-  "version" : "3.0.0",
+  "version" : "3.0.1",
   "intentInputTypes" : [
 
   ]
