@@ -10,6 +10,7 @@ import {
   RoundedRectangle,
   Capsule,
   Color,
+  GeometryReader,
 } from "scripting"
 import {
   getAccountData,
@@ -395,17 +396,25 @@ function MediumStepProgress({ totalYearPq, settings, lastUpdateTime, compact = f
     </ZStack>
   )
 }
-function ModernBarChart({ data, color }: { data: BarData[]; color: string }) {
-  const chartWidth = rpt(128)
-  const chartHeight = rpt(30)
+function ModernBarChart({ data, color, width, height }: { data: BarData[]; color: string; width?: number; height?: number }) {
+  const chartWidth = Math.max(rpt(1), width || rpt(128))
+  const chartHeight = Math.max(rpt(1), height || rpt(30))
   const values = data.map((item) => Math.max(0, Number(item.value) || 0))
   const max = Math.max(...values, 1)
   const count = Math.max(values.length, 1)
-  const gap = count > 1 ? rpt(2.5) : 0
-  const barWidth = Math.max(rpt(2), Math.min(rpt(5), (chartWidth - gap * (count - 1)) / count))
+  const preferredGap = count > 12 ? rpt(2) : rpt(4)
+  const maxBarWidth = count > 12 ? rpt(4) : rpt(6)
+  const barWidth = Math.max(rpt(2), Math.min(maxBarWidth, (chartWidth - preferredGap * (count - 1)) / count))
+  const gap = count > 1
+    ? Math.max(0, Math.min(rpt(7), (chartWidth - barWidth * count) / (count - 1)))
+    : 0
 
   return (
-    <HStack alignment="bottom" spacing={gap} frame={{ width: chartWidth, height: chartHeight }}>
+    <HStack
+      alignment="bottom"
+      spacing={gap}
+      frame={{ width: chartWidth, height: chartHeight, alignment: "leading" }}
+    >
       {values.map((value, index) => (
         <RoundedRectangle
           key={index}
@@ -420,23 +429,23 @@ function ModernBarChart({ data, color }: { data: BarData[]; color: string }) {
   )
 }
 
-function ModernStepProgress({ usage, settings }: { usage: number; settings: SGCCSettings }) {
+function ModernStepProgress({ usage, settings, width }: { usage: number; settings: SGCCSettings; width?: number }) {
   const { level, labelText } = getStepProgress(usage, settings)
-  const width = rpt(164)
-  const firstMarker = Math.max(0, Math.min(width, width * settings.oneLevelPq / settings.twoLevelPq))
+  const progressWidth = Math.max(rpt(150), width || rpt(164))
+  const firstMarker = Math.max(0, Math.min(progressWidth, progressWidth * settings.oneLevelPq / settings.twoLevelPq))
   const progress = level === 3 ? 1 : Math.max(0, Math.min(1, usage / settings.twoLevelPq))
-  const progressWidth = Math.max(rpt(4), width * progress)
+  const filledWidth = Math.max(rpt(4), progressWidth * progress)
 
   return (
-    <VStack alignment="leading" spacing={rpt(4)}>
-      <HStack alignment="center">
+    <VStack alignment="leading" spacing={rpt(4)} frame={{ width: progressWidth }}>
+      <HStack alignment="center" frame={{ width: progressWidth }}>
         <Text font={rpt(8)} foregroundStyle="secondaryLabel">阶梯电量</Text>
         <Spacer />
-        <Text font={rpt(8)} foregroundStyle="secondaryLabel">{labelText}</Text>
+        <Text font={rpt(8)} foregroundStyle="secondaryLabel" lineLimit={1} minScaleFactor={0.75}>{labelText}</Text>
       </HStack>
-      <ZStack alignment="leading" frame={{ width, height: rpt(10) }}>
-        <Capsule fill={{ light: "rgba(0,0,0,0.08)", dark: "rgba(255,255,255,0.13)" } as any} frame={{ width, height: rpt(7) }} />
-        <Capsule fill={settings.themeColor as any} frame={{ width: progressWidth, height: rpt(7) }} />
+      <ZStack alignment="leading" frame={{ width: progressWidth, height: rpt(10) }}>
+        <Capsule fill={{ light: "rgba(0,0,0,0.08)", dark: "rgba(255,255,255,0.13)" } as any} frame={{ width: progressWidth, height: rpt(7) }} />
+        <Capsule fill={settings.themeColor as any} frame={{ width: filledWidth, height: rpt(7) }} />
         <RoundedRectangle
           cornerRadius={rpt(1)}
           fill={{ light: "rgba(20,20,20,0.7)", dark: "rgba(255,255,255,0.72)" } as any}
@@ -447,12 +456,12 @@ function ModernStepProgress({ usage, settings }: { usage: number; settings: SGCC
           cornerRadius={rpt(1)}
           fill={{ light: "rgba(20,20,20,0.7)", dark: "rgba(255,255,255,0.72)" } as any}
           frame={{ width: rpt(1.5), height: rpt(10) }}
-          offset={{ x: width - rpt(1.5), y: 0 }}
+          offset={{ x: progressWidth - rpt(1.5), y: 0 }}
         />
         <Capsule
           fill={settings.themeColor as any}
           frame={{ width: rpt(10), height: rpt(10) }}
-          offset={{ x: Math.max(0, progressWidth - rpt(5)), y: 0 }}
+          offset={{ x: Math.max(0, filledWidth - rpt(5)), y: 0 }}
         />
       </ZStack>
     </VStack>
@@ -472,71 +481,107 @@ function ModernMediumWidget({ displayData, barData, settings }: { displayData: a
   })
 
   return (
-    <VStack
-      padding={{ vertical: rpt(12), horizontal: rpt(14) }}
-      spacing={0}
-      preferredColorScheme={settings.themeMode === 'system' ? undefined : settings.themeMode}
-      widgetBackground={isTransparentWidget ? undefined : ({ light: "#F4F4F6", dark: "#1C1C1E" } as any)}
-    >
-      <HStack spacing={rpt(12)} frame={{ maxWidth: Infinity, maxHeight: Infinity }} alignment="center">
-        <VStack frame={{ width: rpt(84), maxHeight: Infinity }} alignment="leading" spacing={0}>
-          <HStack alignment="center" spacing={rpt(4)}>
-            <Image systemName="bolt.circle.fill" resizable frame={{ width: rpt(14), height: rpt(14) }} foregroundStyle={settings.themeColor as any} />
-            <Text font={rpt(10)} fontWeight="semibold" lineLimit={1}>国家电网</Text>
-          </HStack>
-          {settings.showAccountName && displayData.accountName ? (
-            <Text font={rpt(7)} foregroundStyle="secondaryLabel" lineLimit={1} minScaleFactor={0.7}>{displayData.accountName}</Text>
-          ) : null}
-          <Spacer />
-          <Text font={rpt(8)} foregroundStyle="secondaryLabel">{displayData.hasArrear || balance < 0 ? '待缴电费' : '电费余额'}</Text>
-          <HStack alignment="firstTextBaseline" spacing={rpt(2)}>
-            <Text font={rpt(20)} fontWeight="bold" fontDesign="rounded" foregroundStyle={balanceColor as any} lineLimit={1} minScaleFactor={0.55}>{Number.isFinite(balance) ? balance.toFixed(2) : displayData.balance}</Text>
-            <Text font={rpt(7)} foregroundStyle={balanceColor as any}>元</Text>
-          </HStack>
-          <Spacer />
-          <HStack alignment="center" spacing={rpt(3)}>
-            <Image systemName="clock.arrow.circlepath" resizable frame={{ width: rpt(7), height: rpt(7) }} foregroundStyle="secondaryLabel" />
-            <Text font={rpt(7)} foregroundStyle="secondaryLabel">{updateText}</Text>
-          </HStack>
-        </VStack>
+    <GeometryReader>
+      {(proxy) => {
+        const horizontalPadding = rpt(14)
+        const verticalPadding = rpt(12)
+        const measuredWidth = Number(proxy.size?.width) || rpt(329)
+        const availableWidth = Math.max(rpt(220), measuredWidth - horizontalPadding * 2)
+        const leftWidth = rpt(84)
+        const dividerGap = rpt(12)
+        const dividerWidth = rpt(1)
+        const rightWidth = Math.max(rpt(150), availableWidth - leftWidth - dividerGap - dividerWidth)
+        const metricWidth = rightWidth / 2
+        const recentWidth = rpt(72)
+        const chartWidth = Math.max(rpt(92), rightWidth - recentWidth - rpt(8))
 
-        <RoundedRectangle
-          cornerRadius={rpt(0.5)}
-          fill={{ light: "rgba(0,0,0,0.1)", dark: "rgba(255,255,255,0.12)" } as any}
-          frame={{ width: rpt(1), maxHeight: Infinity }}
-        />
+        const BrandIcon = () => (
+          <Image
+            systemName="bolt.circle.fill"
+            resizable
+            frame={{ width: rpt(14), height: rpt(14) }}
+            foregroundStyle={settings.themeColor as any}
+          />
+        )
 
-        <VStack frame={{ maxWidth: Infinity, maxHeight: Infinity }} alignment="leading" spacing={rpt(6)}>
-          <HStack spacing={rpt(20)}>
-            <VStack alignment="leading" spacing={0}>
-              <Text font={rpt(8)} foregroundStyle="secondaryLabel">年度电量</Text>
-              <HStack alignment="firstTextBaseline" spacing={rpt(2)}>
-                <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{displayData.yearUsage}</Text>
-                <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
-              </HStack>
-            </VStack>
-            <VStack alignment="leading" spacing={0}>
-              <Text font={rpt(8)} foregroundStyle="secondaryLabel">月度电量</Text>
-              <HStack alignment="firstTextBaseline" spacing={rpt(2)}>
-                <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{Number(displayData.currentMonthUsage || 0).toFixed(0)}</Text>
-                <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
-              </HStack>
-            </VStack>
-          </HStack>
-          <ModernStepProgress usage={usageForStep} settings={settings} />
-          <HStack alignment="bottom" spacing={rpt(8)} frame={{ maxWidth: Infinity }}>
-            <ModernBarChart data={barData} color={settings.chartColor} />
-            <VStack alignment="trailing" spacing={0}>
-              <Text font={rpt(7)} foregroundStyle="secondaryLabel">近日用电</Text>
-              <HStack alignment="firstTextBaseline" spacing={rpt(2)}>
-                <Text font={rpt(16)} fontWeight="semibold" fontDesign="rounded" foregroundStyle={settings.themeColor as any}>{Number(displayData.recentUsage || 0).toFixed(2)}</Text>
-                <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
-              </HStack>
-            </VStack>
-          </HStack>
-        </VStack>
-      </HStack>
-    </VStack>
+        return (
+          <VStack
+            padding={{ vertical: verticalPadding, horizontal: horizontalPadding }}
+            spacing={0}
+            frame={{ maxWidth: Infinity, maxHeight: Infinity }}
+            preferredColorScheme={settings.themeMode === 'system' ? undefined : settings.themeMode}
+            widgetBackground={isTransparentWidget ? undefined : ({ light: "#F4F4F6", dark: "#1C1C1E" } as any)}
+          >
+            <HStack
+              spacing={dividerGap}
+              frame={{ width: availableWidth, maxHeight: Infinity }}
+              alignment="center"
+            >
+              <VStack frame={{ width: leftWidth, maxHeight: Infinity }} alignment="leading" spacing={0}>
+                <HStack alignment="center" spacing={rpt(4)} frame={{ maxWidth: Infinity, alignment: "leading" }}>
+                  <BrandIcon />
+                  <Text font={rpt(10)} fontWeight="semibold" lineLimit={1} minScaleFactor={0.75}>国家电网</Text>
+                </HStack>
+                {settings.showAccountName && displayData.accountName ? (
+                  <Text font={rpt(7)} foregroundStyle="secondaryLabel" lineLimit={1} minScaleFactor={0.7}>{displayData.accountName}</Text>
+                ) : null}
+                <Spacer />
+                <Text font={rpt(8)} foregroundStyle="secondaryLabel">{displayData.hasArrear || balance < 0 ? '待缴电费' : '电费余额'}</Text>
+                <HStack alignment="firstTextBaseline" spacing={rpt(2)}>
+                  <Text font={rpt(20)} fontWeight="bold" fontDesign="rounded" foregroundStyle={balanceColor as any} lineLimit={1} minScaleFactor={0.55}>{Number.isFinite(balance) ? balance.toFixed(2) : displayData.balance}</Text>
+                  <Text font={rpt(7)} foregroundStyle={balanceColor as any}>元</Text>
+                </HStack>
+                <Spacer />
+                <HStack alignment="center" spacing={rpt(3)}>
+                  <Image systemName="clock.arrow.circlepath" resizable frame={{ width: rpt(7), height: rpt(7) }} foregroundStyle="secondaryLabel" />
+                  <Text font={rpt(7)} foregroundStyle="secondaryLabel">{updateText}</Text>
+                </HStack>
+              </VStack>
+
+              <RoundedRectangle
+                cornerRadius={rpt(0.5)}
+                fill={{ light: "rgba(0,0,0,0.1)", dark: "rgba(255,255,255,0.12)" } as any}
+                frame={{ width: dividerWidth, maxHeight: Infinity }}
+              />
+
+              <VStack frame={{ width: rightWidth, maxHeight: Infinity }} alignment="leading" spacing={rpt(6)}>
+                <HStack spacing={0} frame={{ width: rightWidth }}>
+                  <VStack alignment="leading" spacing={0} frame={{ width: metricWidth }}>
+                    <Text font={rpt(8)} foregroundStyle="secondaryLabel">年度电量</Text>
+                    <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: Infinity, alignment: "leading" }}>
+                      <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{displayData.yearUsage}</Text>
+                      <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
+                    </HStack>
+                  </VStack>
+                  <VStack alignment="trailing" spacing={0} frame={{ width: metricWidth }}>
+                    <Text font={rpt(8)} foregroundStyle="secondaryLabel">月度电量</Text>
+                    <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: Infinity, alignment: "trailing" }}>
+                      <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{Number(displayData.currentMonthUsage || 0).toFixed(0)}</Text>
+                      <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
+                    </HStack>
+                  </VStack>
+                </HStack>
+
+                <ModernStepProgress usage={usageForStep} settings={settings} width={rightWidth} />
+
+                <Spacer minLength={rpt(1)} />
+                <HStack alignment="bottom" spacing={0} frame={{ width: rightWidth }}>
+                  <ModernBarChart data={barData} color={settings.chartColor} width={chartWidth} height={rpt(30)} />
+                  <Spacer minLength={rpt(8)} />
+                  <VStack alignment="trailing" spacing={0} frame={{ width: recentWidth }}>
+                    <Text font={rpt(7)} foregroundStyle="secondaryLabel">近日用电</Text>
+                    <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: Infinity, alignment: "trailing" }}>
+                      <Text font={rpt(16)} fontWeight="semibold" fontDesign="rounded" foregroundStyle={settings.themeColor as any} lineLimit={1} minScaleFactor={0.7}>{Number(displayData.recentUsage || 0).toFixed(2)}</Text>
+                      <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
+                    </HStack>
+                  </VStack>
+                </HStack>
+              </VStack>
+            </HStack>
+          </VStack>
+        )
+      }}
+    </GeometryReader>
   )
 }
 
