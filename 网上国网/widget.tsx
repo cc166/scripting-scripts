@@ -20,6 +20,8 @@ import {
   extractDisplayData,
   SGCCSettings,
   BarData,
+  MetricKey,
+  RowDisplayMode,
   createDemoAccountData
 } from "./api"
 
@@ -491,9 +493,114 @@ function ModernMediumWidget({ displayData, barData, settings }: { displayData: a
         const dividerGap = rpt(12)
         const dividerWidth = rpt(1)
         const rightWidth = Math.max(rpt(150), availableWidth - leftWidth - dividerGap - dividerWidth)
-        const metricWidth = rightWidth / 2
-        const recentWidth = rpt(72)
-        const chartWidth = Math.max(rpt(92), rightWidth - recentWidth - rpt(8))
+
+        const rowDisplay = (rowNum: 1 | 2 | 3): RowDisplayMode =>
+          rowNum === 1 ? settings.row1Display : rowNum === 2 ? settings.row2Display : settings.row3Display
+
+        const metricItem = (key: MetricKey, align: 'leading' | 'trailing') => {
+          switch (key) {
+            case 'monthFee':
+              return (
+                <VStack alignment={align} spacing={0}>
+                  <Text font={rpt(8)} foregroundStyle="secondaryLabel">上期电费</Text>
+                  <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: 'infinity', alignment: align }}>
+                    <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{Number(displayData.lastBill || 0).toFixed(2)}</Text>
+                    <Text font={rpt(7)} foregroundStyle="secondaryLabel">元</Text>
+                  </HStack>
+                </VStack>
+              )
+            case 'monthUsage':
+              return (
+                <VStack alignment={align} spacing={0}>
+                  <Text font={rpt(8)} foregroundStyle="secondaryLabel">上月电量</Text>
+                  <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: 'infinity', alignment: align }}>
+                    <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{Number(displayData.lastUsage || 0).toFixed(0)}</Text>
+                    <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
+                  </HStack>
+                </VStack>
+              )
+            case 'yearFee':
+              return (
+                <VStack alignment={align} spacing={0}>
+                  <Text font={rpt(8)} foregroundStyle="secondaryLabel">年度电费</Text>
+                  <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: 'infinity', alignment: align }}>
+                    <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{Number(displayData.yearBill || 0).toFixed(2)}</Text>
+                    <Text font={rpt(7)} foregroundStyle="secondaryLabel">元</Text>
+                  </HStack>
+                </VStack>
+              )
+            case 'yearUsage':
+              return (
+                <VStack alignment={align} spacing={0}>
+                  <Text font={rpt(8)} foregroundStyle="secondaryLabel">年度电量</Text>
+                  <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: 'infinity', alignment: align }}>
+                    <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{displayData.yearUsage}</Text>
+                    <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
+                  </HStack>
+                </VStack>
+              )
+            case 'currentMonthEle':
+              return (
+                <VStack alignment={align} spacing={0}>
+                  <Text font={rpt(8)} foregroundStyle="secondaryLabel">本月电量</Text>
+                  <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: 'infinity', alignment: align }}>
+                    <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{Number(displayData.currentMonthUsage || 0).toFixed(0)}</Text>
+                    <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
+                  </HStack>
+                </VStack>
+              )
+            case 'dayFee':
+              return (
+                <VStack alignment={align} spacing={0}>
+                  <Text font={rpt(7)} foregroundStyle="secondaryLabel">近日用电</Text>
+                  <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: 'infinity', alignment: align }}>
+                    <Text font={rpt(16)} fontWeight="semibold" fontDesign="rounded" foregroundStyle={settings.themeColor as any} lineLimit={1} minScaleFactor={0.7}>{Number(displayData.recentUsage || 0).toFixed(2)}</Text>
+                    <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
+                  </HStack>
+                </VStack>
+              )
+            case 'remainFee':
+              return (
+                <VStack alignment={align} spacing={0}>
+                  <Text font={rpt(8)} foregroundStyle="secondaryLabel">电费余额</Text>
+                  <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: 'infinity', alignment: align }}>
+                    <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded" foregroundStyle={balanceColor as any} lineLimit={1} minScaleFactor={0.7}>{Math.abs(balance).toFixed(2)}</Text>
+                    <Text font={rpt(7)} foregroundStyle="secondaryLabel">元</Text>
+                  </HStack>
+                </VStack>
+              )
+            case 'dayChart':
+              return <ModernBarChart data={barData} color={settings.chartColor} width={rpt(120)} height={rpt(30)} />
+            case 'none':
+              return null
+          }
+        }
+
+        const groupRow = (groupNum: 1 | 2 | 3) => {
+          const leftKey = groupNum === 1 ? settings.group1Left : groupNum === 2 ? settings.group2Left : settings.group3Left
+          const rightKey = groupNum === 1 ? settings.group1Right : groupNum === 2 ? settings.group2Right : settings.group3Right
+          if (leftKey === 'none' && rightKey === 'none') return <Spacer minLength={rpt(2)} />
+          const hasChart = leftKey === 'dayChart' || rightKey === 'dayChart'
+          return (
+            <HStack alignment={hasChart ? 'bottom' : 'firstTextBaseline'} spacing={0} frame={{ width: rightWidth }}>
+              <VStack alignment="leading" frame={{ maxWidth: 'infinity', alignment: 'leading' }}>
+                {metricItem(leftKey, 'leading')}
+              </VStack>
+              <Spacer minLength={rpt(8)} />
+              <VStack alignment="trailing" frame={{ maxWidth: 'infinity', alignment: 'trailing' }}>
+                {metricItem(rightKey, 'trailing')}
+              </VStack>
+            </HStack>
+          )
+        }
+
+        const rowRenderer = (rowNum: 1 | 2 | 3) => {
+          const mode = rowDisplay(rowNum)
+          if (mode === 'step') {
+            return <ModernStepProgress usage={usageForStep} settings={settings} width={rightWidth} />
+          }
+          return groupRow(mode === 'group1' ? 1 : mode === 'group2' ? 2 : 3)
+        }
 
         const BrandIcon = () => (
           <Image
@@ -545,37 +652,11 @@ function ModernMediumWidget({ displayData, barData, settings }: { displayData: a
               />
 
               <VStack frame={{ width: rightWidth, maxHeight: Infinity }} alignment="leading" spacing={rpt(6)}>
-                <HStack spacing={0} frame={{ width: rightWidth }}>
-                  <VStack alignment="leading" spacing={0} frame={{ width: metricWidth }}>
-                    <Text font={rpt(8)} foregroundStyle="secondaryLabel">年度电量</Text>
-                    <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: Infinity, alignment: "leading" }}>
-                      <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{displayData.yearUsage}</Text>
-                      <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
-                    </HStack>
-                  </VStack>
-                  <VStack alignment="trailing" spacing={0} frame={{ width: metricWidth }}>
-                    <Text font={rpt(8)} foregroundStyle="secondaryLabel">月度电量</Text>
-                    <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: Infinity, alignment: "trailing" }}>
-                      <Text font={rpt(15)} fontWeight="semibold" fontDesign="rounded">{Number(displayData.currentMonthUsage || 0).toFixed(0)}</Text>
-                      <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
-                    </HStack>
-                  </VStack>
-                </HStack>
-
-                <ModernStepProgress usage={usageForStep} settings={settings} width={rightWidth} />
-
-                <Spacer minLength={rpt(1)} />
-                <HStack alignment="bottom" spacing={0} frame={{ width: rightWidth }}>
-                  <ModernBarChart data={barData} color={settings.chartColor} width={chartWidth} height={rpt(30)} />
-                  <Spacer minLength={rpt(8)} />
-                  <VStack alignment="trailing" spacing={0} frame={{ width: recentWidth }}>
-                    <Text font={rpt(7)} foregroundStyle="secondaryLabel">近日用电</Text>
-                    <HStack alignment="firstTextBaseline" spacing={rpt(2)} frame={{ maxWidth: Infinity, alignment: "trailing" }}>
-                      <Text font={rpt(16)} fontWeight="semibold" fontDesign="rounded" foregroundStyle={settings.themeColor as any} lineLimit={1} minScaleFactor={0.7}>{Number(displayData.recentUsage || 0).toFixed(2)}</Text>
-                      <Text font={rpt(7)} foregroundStyle="secondaryLabel">度</Text>
-                    </HStack>
-                  </VStack>
-                </HStack>
+                {rowRenderer(1)}
+                <Spacer minLength={rpt(2)} />
+                {rowRenderer(2)}
+                <Spacer minLength={rpt(2)} />
+                {rowRenderer(3)}
               </VStack>
             </HStack>
           </VStack>
