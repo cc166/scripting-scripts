@@ -363,6 +363,7 @@ function getAccountName(data: any): string {
     .map((item: any) => item?.electricParticulars)
     .find((item: any) => item?.consName || item?.elecAddress)
   const candidates = [
+    data?.userInfo?.consName_dst,
     particulars?.consName,
     data?.consName,
     data?.accountName,
@@ -378,7 +379,15 @@ function getAccountName(data: any): string {
 
 /** 提取关键展示数据 (余额, 上期, 年度等) */
 export function extractDisplayData(data: any) {
-  const balance = data.eleBill?.sumMoney || "0.00"
+  const bill = data.eleBill || {}
+  // 移植自 Sylvan 基准：存在 accountBalance 字段代表后付费账户，余额取 accountBalance。
+  const isPostPaid = Object.prototype.hasOwnProperty.call(bill, 'accountBalance')
+  // SGCC_Mod 口径：后付费取 accountBalance。但部分账户 accountBalance 恒为 0、
+  // 真实余额在 sumMoney，此时回退 sumMoney，避免余额误显示为 0。
+  const accountBalanceNum = Number(bill.accountBalance)
+  const balance = isPostPaid && accountBalanceNum !== 0
+    ? accountBalanceNum.toFixed(2)
+    : (bill.sumMoney ?? "0.00")
   const hasArrear = !!data.arrearsOfFees
 
   // 上期数据 (优先尝试取最后一月，否则取阶梯数据中的第一项)
@@ -401,6 +410,9 @@ export function extractDisplayData(data: any) {
   // 阶梯进度分子：当年已结算月份累计电量 + 当月日用电量累计。
   // 当月电量按 dayElecQuantity31.sevenEleList 中当前年月的 dayElePq 求和。
   const yearBill = data.monthElecQuantity?.dataInfo?.totalEleCost || "0"
+  // 阶梯年度累计（SGCC_Mod 基准口径）：接口 totalYearPq / totalEleNum 不含当月，
+  // 需叠加本月累计 currentMonthEle，与原脚本一致。
+  const interfaceYearPq = Number(data.stepElecQuantity?.[0]?.electricParticulars?.totalYearPq)
   const yearBase = Number(data.monthElecQuantity?.dataInfo?.totalEleNum || 0) || 0
   const now = new Date()
   const year = now.getFullYear()
@@ -433,7 +445,8 @@ export function extractDisplayData(data: any) {
     }
   }
 
-  const totalYearPq = Math.max(0, yearBase + Math.round(Number(currentMonthEle) || 0))
+  const settledYearPq = Number.isFinite(interfaceYearPq) && interfaceYearPq > 0 ? interfaceYearPq : yearBase
+  const totalYearPq = Math.max(0, Math.round(settledYearPq + Number(currentMonthEle) || 0))
   const yearUsage = String(totalYearPq)
 
   return {
