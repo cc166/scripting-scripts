@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.3 - 2026-09-08
+
+- 阶梯电量口径对齐 SGCC_Mod：年度累计 = 接口已结算电量（不含当月）+ 本月日用电合计，修正此前重复计数或漏计当月的问题。
+- 余额显示移植 SGCC_Mod 后付费判定（`accountBalance` 字段），并在 `accountBalance` 为 0 时回退 `sumMoney`，避免余额误显示为 0。
+- 户名提取优先 `userInfo.consName_dst`，与 SGCC_Mod 一致。
+
 ## 3.0.2 - 2026-09-03
 
 - 使用 `GeometryReader` 按组件实际尺寸分配中号组件右栏宽度。
