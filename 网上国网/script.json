@@ -1,44 +1,44 @@
 {
+  "name": "网上国网",
+  "version": "3.0.4",
+  "iconImage": "https://raw.githubusercontent.com/Honye/scriptable-scripts/master/static/sgcc.png",
+  "icon": "bolt.shield",
+  "runInApp": false,
+  "color": "rgba(0, 112, 107, 1)",
+  "entry": "index.tsx",
+  "description": "国家电网电费、阶梯进度与近期用电趋势小组件",
+  "intentInputTypes": [],
   "author": {
     "email": "lchen@lchen.ac.cn",
-    "homepage": "https://github.com/Primovist",
-    "name": "LChen"
+    "name": "LChen",
+    "homepage": "https://github.com/Primovist"
   },
-  "contributors": [],
-  "name": "网上国网",
-  "entry": "index.tsx",
-  "runInApp": false,
   "remoteResource": {
     "autoUpdateInterval": 600,
     "url": "https://github.com/cc166/scripting-scripts/tree/main/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91"
   },
-  "iconImage": "https://raw.githubusercontent.com/Honye/scriptable-scripts/master/static/sgcc.png",
-  "color": "rgba(0, 112, 107, 1)",
-  "localizedDescriptions": {
-    "it": "",
-    "zh": "查询国家电网电费余额和用电量",
-    "en": "Query State Grid electricity bill and usage",
-    "fr": "",
-    "ja": "",
-    "pt": "",
-    "es": "",
-    "de": "",
-    "ru": ""
-  },
-  "permissions": null,
-  "icon": "bolt.shield",
-  "description": "国家电网电费、阶梯进度与近期用电趋势小组件",
-  "version": "3.0.3",
   "localizedNames": {
+    "ru": "",
+    "it": "",
+    "zh": "网上国网",
+    "fr": "",
     "ja": "",
     "de": "",
     "en": "State Grid",
     "es": "",
-    "pt": "",
-    "ru": "",
-    "it": "",
-    "zh": "网上国网",
-    "fr": ""
+    "pt": ""
   },
-  "intentInputTypes": []
+  "contributors": [],
+  "localizedDescriptions": {
+    "ja": "",
+    "pt": "",
+    "fr": "",
+    "zh": "查询国家电网电费余额和用电量",
+    "it": "",
+    "es": "",
+    "de": "",
+    "en": "Query State Grid electricity bill and usage",
+    "ru": ""
+  },
+  "permissions": null
 }
