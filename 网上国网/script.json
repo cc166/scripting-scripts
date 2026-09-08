@@ -1,48 +1,44 @@
 {
-  "name" : "网上国网",
-  "localizedDescriptions" : {
-    "ru" : "",
-    "en" : "Query State Grid electricity bill and usage",
-    "ja" : "",
-    "zh" : "查询国家电网电费余额和用电量",
-    "fr" : "",
-    "de" : "",
-    "pt" : "",
-    "es" : "",
-    "it" : ""
+  "author": {
+    "email": "lchen@lchen.ac.cn",
+    "homepage": "https://github.com/Primovist",
+    "name": "LChen"
   },
-  "localizedNames" : {
-    "en" : "State Grid",
-    "fr" : "",
-    "ja" : "",
-    "zh" : "网上国网",
-    "de" : "",
-    "it" : "",
-    "ru" : "",
-    "es" : "",
-    "pt" : ""
+  "contributors": [],
+  "name": "网上国网",
+  "entry": "index.tsx",
+  "runInApp": false,
+  "remoteResource": {
+    "autoUpdateInterval": 600,
+    "url": "https://github.com/cc166/scripting-scripts/tree/main/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91"
   },
-  "permissions" : null,
-  "description" : "国家电网电费、阶梯进度与近期用电趋势小组件",
-  "runInApp" : false,
-  "iconImage" : "https:\/\/raw.githubusercontent.com\/Honye\/scriptable-scripts\/master\/static\/sgcc.png",
-  "color" : "rgba(0, 112, 107, 1)",
-  "entry" : "index.tsx",
-  "contributors" : [
-
-  ],
-  "icon" : "bolt.shield",
-  "author" : {
-    "homepage" : "https:\/\/github.com\/Primovist",
-    "email" : "lchen@lchen.ac.cn",
-    "name" : "LChen"
+  "iconImage": "https://raw.githubusercontent.com/Honye/scriptable-scripts/master/static/sgcc.png",
+  "color": "rgba(0, 112, 107, 1)",
+  "localizedDescriptions": {
+    "it": "",
+    "zh": "查询国家电网电费余额和用电量",
+    "en": "Query State Grid electricity bill and usage",
+    "fr": "",
+    "ja": "",
+    "pt": "",
+    "es": "",
+    "de": "",
+    "ru": ""
   },
-  "remoteResource" : {
-    "autoUpdateInterval" : 600,
-    "url" : "https:\/\/github.com\/cc166\/scripting-scripts\/tree\/main\/%E7%BD%91%E4%B8%8A%E5%9B%BD%E7%BD%91"
+  "permissions": null,
+  "icon": "bolt.shield",
+  "description": "国家电网电费、阶梯进度与近期用电趋势小组件",
+  "version": "3.0.3",
+  "localizedNames": {
+    "ja": "",
+    "de": "",
+    "en": "State Grid",
+    "es": "",
+    "pt": "",
+    "ru": "",
+    "it": "",
+    "zh": "网上国网",
+    "fr": ""
   },
-  "version" : "3.0.2",
-  "intentInputTypes" : [
-
-  ]
+  "intentInputTypes": []
 }
