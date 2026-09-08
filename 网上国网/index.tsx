@@ -24,8 +24,31 @@ import {
   getSettings,
   resetSettings,
   saveSettings,
-  SGCCSettings
+  SGCCSettings,
+  MetricKey,
+  RowDisplayMode
 } from "./api"
+
+/** 行显示模式选项 */
+const ROW_MODES: { value: RowDisplayMode; label: string }[] = [
+  { value: 'group1', label: '组合一' },
+  { value: 'group2', label: '组合二' },
+  { value: 'group3', label: '组合三' },
+  { value: 'step', label: '阶梯电量' }
+]
+
+/** 指标项选项 */
+const METRIC_OPTIONS: { value: MetricKey; label: string }[] = [
+  { value: 'monthFee', label: '上期电费' },
+  { value: 'monthUsage', label: '上月电量' },
+  { value: 'yearFee', label: '年度电费' },
+  { value: 'yearUsage', label: '年度电量' },
+  { value: 'currentMonthEle', label: '本月电量' },
+  { value: 'dayFee', label: '近日用电' },
+  { value: 'remainFee', label: '电费余额' },
+  { value: 'dayChart', label: '日用电图表' },
+  { value: 'none', label: '不显示' }
+]
 
 function SettingsView() {
   const dismiss = Navigation.useDismiss()
@@ -183,6 +206,62 @@ function SettingsView() {
             <Text tag="light">浅色</Text>
             <Text tag="dark">深色</Text>
           </Picker>
+        </Section>
+
+        <Section
+          header={<Text>三栏模式</Text>}
+          footer={<Text>中号组件右侧三栏：每栏可选「组合一/二/三」或「阶梯电量」。组合内容在下方配置。</Text>}
+        >
+          {([1, 2, 3] as const).map((rowNum) => {
+            const key = rowNum === 1 ? 'row1Display' : rowNum === 2 ? 'row2Display' : 'row3Display'
+            return (
+              <Picker
+                key={key}
+                title={rowNum === 1 ? '第一栏' : rowNum === 2 ? '第二栏' : '第三栏'}
+                value={settings[key]}
+                onChanged={(value: string) => applySettings({ [key]: value as RowDisplayMode } as Partial<SGCCSettings>)}
+                pickerStyle="menu"
+              >
+                {ROW_MODES.map((m) => (
+                  <Text key={m.value} tag={m.value}>{m.label}</Text>
+                ))}
+              </Picker>
+            )
+          })}
+        </Section>
+
+        <Section
+          header={<Text>组合内容</Text>}
+          footer={<Text>为组合一/二/三配置左右栏内容，可选 9 种指标。</Text>}
+        >
+          {([1, 2, 3] as const).flatMap((gn) => {
+            const leftKey = `group${gn}Left` as 'group1Left'
+            const rightKey = `group${gn}Right` as 'group1Right'
+            return [
+              <Picker
+                key={`g${gn}l`}
+                title={`组合${['一','二','三'][gn-1]} · 左栏`}
+                value={settings[leftKey as keyof SGCCSettings] as string}
+                onChanged={(value: string) => applySettings({ [leftKey]: value as MetricKey } as Partial<SGCCSettings>)}
+                pickerStyle="menu"
+              >
+                {METRIC_OPTIONS.map((o) => (
+                  <Text key={o.value} tag={o.value}>{o.label}</Text>
+                ))}
+              </Picker>,
+              <Picker
+                key={`g${gn}r`}
+                title={`组合${['一','二','三'][gn-1]} · 右栏`}
+                value={settings[rightKey as keyof SGCCSettings] as string}
+                onChanged={(value: string) => applySettings({ [rightKey]: value as MetricKey } as Partial<SGCCSettings>)}
+                pickerStyle="menu"
+              >
+                {METRIC_OPTIONS.map((o) => (
+                  <Text key={o.value} tag={o.value}>{o.label}</Text>
+                ))}
+              </Picker>
+            ]
+          })}
         </Section>
 
         <Section
