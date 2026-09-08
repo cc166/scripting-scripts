@@ -9,6 +9,19 @@ const SETTINGS_KEY = 'sgccSettings'
 const SETTINGS_SCHEMA_VERSION = 2
 
 // --- 类型定义 ---
+export type MetricKey =
+  | 'monthFee'
+  | 'monthUsage'
+  | 'yearFee'
+  | 'yearUsage'
+  | 'currentMonthEle'
+  | 'dayFee'
+  | 'remainFee'
+  | 'dayChart'
+  | 'none'
+
+export type RowDisplayMode = 'group1' | 'group2' | 'group3' | 'step'
+
 export interface SGCCSettings {
   schemaVersion: number
   barCount: number
@@ -22,6 +35,17 @@ export interface SGCCSettings {
   chartColor: string
   themeColor: string
   themeMode: 'system' | 'light' | 'dark'
+  /** 中号组件第一/二/三栏显示模式（移植自 SGCC_Mod） */
+  row1Display: RowDisplayMode
+  row2Display: RowDisplayMode
+  row3Display: RowDisplayMode
+  /** 各组合左右栏内容 */
+  group1Left: MetricKey
+  group1Right: MetricKey
+  group2Left: MetricKey
+  group2Right: MetricKey
+  group3Left: MetricKey
+  group3Right: MetricKey
 }
 
 export const DEFAULT_SETTINGS: SGCCSettings = {
@@ -36,7 +60,16 @@ export const DEFAULT_SETTINGS: SGCCSettings = {
   stepCalculation: 'year',
   chartColor: '#22C7AE',
   themeColor: '#28C8B2',
-  themeMode: 'system'
+  themeMode: 'system',
+  row1Display: 'group1',
+  row2Display: 'step',
+  row3Display: 'group3',
+  group1Left: 'yearFee',
+  group1Right: 'monthUsage',
+  group2Left: 'yearUsage',
+  group2Right: 'currentMonthEle',
+  group3Left: 'dayChart',
+  group3Right: 'dayFee'
 }
 
 export interface BarData {
