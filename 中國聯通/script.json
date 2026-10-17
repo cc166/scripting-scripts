@@ -34,7 +34,7 @@
     "email": null,
     "name": "ByteValley"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "name": "中國聯通",
   "entry": "index.tsx"
 }

@@ -195,6 +195,7 @@ function SettingsView() {
   const initialCacheScopeKey = String(initial.cacheScopeKey ?? defaultChinaUnicomSettings.cacheScopeKey ?? "")
 
   const initialCache = (initial.cache ?? defaultChinaUnicomSettings.cache) as CacheConfig
+  const initialDesmobiel = String(initial.desmobiel ?? "").trim()
 
   // 定向流量匹配：index 收敛
   const initialMatchType = (initial.otherFlowMatchType ??
@@ -206,6 +207,7 @@ function SettingsView() {
   // ==================== State ====================
 
   const [cookie, setCookie] = useState<string>(String(initial.cookie ?? ""))
+  const [desmobiel, setDesmobiel] = useState<string>(initialDesmobiel)
   const [refreshInterval, setRefreshInterval] = useState<number>(initialRefreshInterval)
 
   const [matchTypeIndex, setMatchTypeIndex] = useState<number>(initialMatchIndex)
@@ -263,6 +265,7 @@ function SettingsView() {
       ...initial,
 
       cookie: String(cookie ?? "").trim(),
+      desmobiel: String(desmobiel ?? "").trim(),
       refreshInterval:
         typeof refreshInterval === "number" && Number.isFinite(refreshInterval)
           ? refreshInterval
@@ -370,6 +373,12 @@ function SettingsView() {
 
         <Section header={<Text font="body" fontWeight="semibold">登录凭证</Text>}>
           <TextField title="Cookie" value={cookie} prompt="在此处粘贴联通 App 的 Cookie" onChanged={setCookie} />
+          <TextField
+            title="手机号"
+            value={desmobiel}
+            prompt="联通手机号（仅保存在本机，不写入公开仓库）"
+            onChanged={setDesmobiel}
+          />
         </Section>
 
         <RenderConfigSection

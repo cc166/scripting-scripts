@@ -58,8 +58,10 @@ import { kv, errToString, srcLabel } from "./shared/utils/widgetKit"
  * - 常量区无日志
  * ===================================================================== */
 
-const API_URL =
-  "https://m.client.10010.com/mobileserviceimportant/home/queryUserInfoSeven?version=iphone_c@10.0100&desmobiel=YOUR_PHONE&showType=0"
+function buildFeeApiUrl(desmobiel: string): string {
+  const mobile = String(desmobiel || "").trim()
+  return `https://m.client.10010.com/mobileserviceimportant/home/queryUserInfoSeven?version=iphone_c@10.0100&desmobiel=${encodeURIComponent(mobile)}&showType=0`
+}
 
 const API_DETAIL_URL =
   "https://m.client.10010.com/servicequerybusiness/operationservice/queryOcsPackageFlowLeftContentRevisedInJune"
@@ -374,10 +376,12 @@ async function fetchCookieFromBoxJs(boxJsUrl: string): Promise<string | null> {
  * - 输出关键请求与 code，便于定位问题
  * ===================================================================== */
 
-async function fetchFeeData(cookie: string): Promise<FeeData | null> {
+async function fetchFeeData(cookie: string, desmobiel: string): Promise<FeeData | null> {
   try {
-    console.log(`🌐 请求 | 话费：GET ${API_URL}`)
-    const response = await fetch(API_URL, {
+    const apiUrl = buildFeeApiUrl(desmobiel)
+    const maskedUrl = apiUrl.replace(/desmobiel=[^&]*/, "desmobiel=***")
+    console.log(`🌐 请求 | 话费：GET ${maskedUrl}`)
+    const response = await fetch(apiUrl, {
       headers: {
         Host: "m.client.10010.com",
         "User-Agent": "ChinaUnicom.x CFNetwork iOS/16.3 unicom{version:iphone_c@10.0100}",
@@ -563,6 +567,7 @@ async function render() {
 
   const enableBoxJs = !!settings.enableBoxJs
   const boxJsUrl = String(settings.boxJsUrl ?? "").trim()
+  const desmobiel = String(settings.desmobiel ?? "").trim()
 
   console.log(`🚀 组件启动 | carrier=CUCC | refresh=${refreshInterval}m`)
   console.log(
@@ -571,6 +576,7 @@ async function render() {
       matchValue,
       enableBoxJs: enableBoxJs ? "Y" : "N",
       boxJsUrl: boxJsUrl ? "Y" : "N",
+      desmobiel: desmobiel ? "Y" : "N",
       cacheEnabled: cache.enabled ? "Y" : "N",
       cacheMode: cache.mode,
       ttlPolicy: cache.ttlPolicy,
@@ -687,7 +693,12 @@ async function render() {
    * 模块分类 · 网络请求（并发）
    * =================================================================== */
 
-  const [feeData, detailData] = await Promise.all([fetchFeeData(cookie), fetchDetailData(cookie)])
+  if (!desmobiel) {
+    presentMessage("⚠️ 请在设置中填写联通手机号", reloadPolicy)
+    return
+  }
+
+  const [feeData, detailData] = await Promise.all([fetchFeeData(cookie, desmobiel), fetchDetailData(cookie)])
 
   if (!feeData || !detailData) {
     console.warn(`⚠️ 网络失败 | fee=${feeData ? "Y" : "N"} detail=${detailData ? "Y" : "N"}`)

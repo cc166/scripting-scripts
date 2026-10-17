@@ -33,6 +33,9 @@ export const UNICOM_LOGO_CACHE_KEY = `${SETTINGS_KEY}:cache:logo`
 export type ChinaUnicomSettings = UiSwitchSource & {
   cookie: string
 
+  /** 联通手机号（仅用于查询接口，仅保存在本机） */
+  desmobiel: string
+
   refreshInterval: number
 
   otherFlowMatchType?: "flowType" | "addupItemCode"
@@ -53,6 +56,8 @@ export const defaultChinaUnicomSettings: ChinaUnicomSettings = {
   ...pickUiSettings({}),
 
   cookie: "",
+
+  desmobiel: "",
 
   refreshInterval: 180,
 
